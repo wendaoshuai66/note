@@ -5,7 +5,7 @@
 
 
 ## 目录
-1. [前言](#README)      
+1. [后台语言](#README)      
 1. [ECMAScript 6简介](#docs/intro)
 1. [let 和 const 命令](#docs/let)
 1. [变量的解构赋值](#docs/destructuring)
