@@ -6,7 +6,7 @@
 
 ## 目录
 1. [后台语言](#README)      
-1. [ECMAScript 6简介](#docs/intro)
+1. [Linux基础入门](#docs/Linux)
 1. [let 和 const 命令](#docs/let)
 1. [变量的解构赋值](#docs/destructuring)
 1. [字符串的扩展](#docs/string)
