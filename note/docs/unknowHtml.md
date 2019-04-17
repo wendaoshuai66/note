@@ -35,7 +35,73 @@ var allCookie = document.cookie;
 另外，服务器也可以在设置Cookie的时候，指定Cookie的所属域名为一级域名，比如`.example.com`。
 
 ``` javascript
-Set-Cookie: key=value; domain=.example.com; path=/
+Set-Cookie: key=value; domain=.example.com; path=/                                      
 ```
 
-​	                                                                                                                                                                                                                                   
+## 常见跨域的方案
+
+img iframe script 并没有规定到同源策略所限制的对象中，经常实现从本域到其他的一个域发起请求，最实用的的HTML的标签
+
+```
+<img src="http://wwww.test.com/" alt="">
+<iframe src="http://wwww.test.com/" frameborder="0"></iframe>
+<script src="http://wwww.test.com/"></script>
+```
+
+img  iframe script	 Jsonp（callback与后端约定）link(background)
+
+### jsonp案列
+
+```
+js部分
+第一种写法
+<script src="http://wwww.test.com/index.php?callback=test"></script>
+
+<script>
+function test(data){
+    console.log(data)
+}
+</script>
+第二种写法
+function addScriptTag(src){
+  var s = document.createElement('script')
+  s.setAttribute('type','text/script')
+  s.src = src
+  document.body.appendChild(s)
+}
+window.onload =fuction(){
+  addScriptTag('http://wwww.test.com/index.php?callback=test')
+}
+function test(data) {
+        console.log('Your public IP address is: ' + data.ip);
+    }
+js也可以这样写
+
+
+php 部分
+if(callback) {
+    test({"data":"约定成功"})
+}
+```
+
+### 标签拓展
+
+```
+var img = new Image()
+    var start = Date.now()
+    img.src = 'http://img0.imgtn.bdimg.com/it/u=1375648583,1039230805&fm=26&gp=0.jpg'
+    img.onload =function (ev) {
+        var end = Date.now()
+        var t = (end -start)/1000
+        varv = 't'+= 'kb/s'
+        console.log(t/1000)
+        
+    }
+```
+
+## HTML语义化标签
+
+使用div进行布局，不要用div进行无意义的包裹，尽量少写html，原因减少dom渲染时间，浪费文件大小
+
+语义化标签是因为爬虫
+
