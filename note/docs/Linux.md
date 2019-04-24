@@ -4,7 +4,7 @@
 ![Linux的历史](https://wendaoshuai66.github.io/study/note/images/linux_history1.jpg)](https://wendaoshuai66.github.io/study/note/images/linux_history1.jpg)
 [![Linux的历史](https://wendaoshuai66.github.io/study/note/images/linux_history2.jpg)](https://wendaoshuai66.github.io/study/note/images/linux_history2.jpg)
 
-# Linux 基本命令行入门
+## Linux 基本命令行入门
 
 ls 查看目录中的文件
 
@@ -44,7 +44,7 @@ window下可以安装cygwin 环境操作linux命令
 
 
 
-# window命令
+## window命令
 
 dir 列出当前目录有哪些文件和文件夹
 
