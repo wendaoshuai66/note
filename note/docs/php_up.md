@@ -174,5 +174,13 @@ PHP $_GET 也可用于收集提交 HTML 表单 (method="get") 之后的表单数
 
 $_GET 也可以收集 URL 中的发送的数据。
 
+## 数据类型
+
+PHP var_dump() 会返回变量的数据类型和值。
+
+String（字符串）, Integer（整型）, Float（浮点型）, Boolean（布尔型）, Array（数组）, Object（对象）, NULL（空值）。
+
+
+
 
 
