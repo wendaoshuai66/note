@@ -11,5 +11,6 @@
 1. [后台语言](#README)      
 1. [Linux基础入门](#docs/Linux)
 1. [Php与MySql开发入门上](#docs/php_up)
+1. [Php与MySql开发入门中](#docs/php_middle)
 
 
