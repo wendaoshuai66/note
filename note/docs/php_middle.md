@@ -61,3 +61,321 @@ new Person('first',11);
 new Person('second',12);
 ```
 
+## PHP 魔术方法
+
+### 使用__get可以访问私有属性
+
+```
+class Person{
+    public $name = 'ls';//共有的
+    private $age=23;//私有的
+    protected $money =10;//受保护的
+    //私有的成员方法，不能再类的外部直接访问
+    private function getAge(){
+        return $this->age;
+    }
+    //受保护的成员方法，不能再类的外部直接访问
+    protected function getMoney(){
+        return $this->money;
+    }
+    //共有的成员方法
+    public function userCard(){
+        return '我的钱有'.$this->getMoney().'我的年龄是'.$this->getAge();
+    }
+     //使用__get可以访问私有属性
+    public function __get($name)
+    {
+        if($name==='age'){
+            return '改值不能访问';
+        }
+    }
+
+}
+ $xw = new Person();
+echo $xw->age;
+```
+
+### __set()：给类的私有属性赋值时调用，传递需设置的属性名。属性值
+
+```
+class Person{
+    public $name = 'ls';//共有的
+    private $age=23;//私有的
+    protected $money =10;//受保护的
+    //私有的成员方法，不能再类的外部直接访问
+    private function getAge(){
+        return $this->age;
+    }
+    //受保护的成员方法，不能再类的外部直接访问
+    protected function getMoney(){
+        return $this->money;
+    }
+    //共有的成员方法
+    public function userCard(){
+        return '我的钱有'.$this->getMoney().'我的年龄是'.$this->getAge();
+    }
+   //__set()：给类的私有属性赋值时调用，传递需设置的属性名。属性值
+    public function __set($name, $value)
+    {
+        if($name === 'age' && $value === 23){
+            $this->age = 30;
+        }
+    }
+
+}
+ $xw = new Person();
+$xw->age =23;
+
+echo $xw->userCard();
+```
+
+### __isset()：和 __unset()
+
+__isset()：检测对象私有属性时调用，传递检测的属性名，返回isset($this->属性名)。
+
+__unset()：使用unset函数删除对象的私有属性时调用，传递删除的属性名。方法中执行unset($this->属性名)。
+
+### _toString()：使用echo打印对象时调用，返回打印对象时想要显示的内容，返回必须是字符串
+
+```
+class Player{
+    private $name;
+    function __construct( $name ){
+        $this->name = $name;
+    }
+
+    function __toString(){
+        //__toString方法必须加一个return
+        return $this->name;
+    }
+}
+
+$player_1 = new Player( "kobe" );
+echo $player_1;
+```
+
+### __call()：调用一个类中未定义的方法或者私有、受保护的方法时自动调用__call函数。传递被调用的函数名及参数列表。
+
+```
+
+class Player{
+    public $name;
+    function __construct( $name ){
+        echo "构造函数<br>";
+        $this->name = $name;
+    }
+    private function getName(){
+        return $this->$name;
+    }
+
+    function __call( $funcName, $funcParams ){
+        echo "调用的函数是$funcName, 参数列表是：";
+        print_r( $funcParams );
+    }
+}
+
+$player_1 = new Player( "kobe" );
+echo $player_1->setName( "james" );
+echo "<br>";
+echo $player_1->getName();
+echo "<br>";
+```
+
+**__clone()：当使用clone关键字克隆一个对象时自动调用，作用是为新克隆的对象初始化赋值**
+
+### _sleep()：对象序列化时自动调用，返回一个数组，数组中的值就是可以序列化的属性。可以定义serialize()序列化时返回的数据
+
+### __wakeup()：对象反序列化时调用，为反序列化新产生的对象进行初始化赋值
+
+### serialize()序列化 unserialize()反序列化
+
+为了传输方便，可以把对象转化程二进制，等到达另一端的时候，再还原成原来的对象。
+1、一个对象再网络中传输的时候需要将对象串形化 2、把对象写入文件或者数据库的时候用到串形化
+
+### autolaod()自动加载 可以理解程按需加载
+
+autoload()是专门为很多类不存在设计的，很多框架利用这个实现了类文件的自动加载
+
+```
+function __autoload($classname)
+{
+    require_once $classname . 'php';
+}
+
+//当Myclass1不存在的时候，自动调用__autoload()函数，传入参数Myclass1;
+$obj1 = new Myclass1();
+$obj2 = new Myclass2();
+```
+
+## PHP 面向对象的继承和多态
+
+子类中重载父类的方法：在子类中允许重写（覆盖）父类中的方法，在子类中，使用parent访问父类中被覆盖的属性和方法
+
+例如：
+
+```
+parent::construct()
+parent::fun()
+```
+
+重载：方法名一样根据传递的参数不一样调用。
+
+```
+class Person{
+    public $name;//外部能访问，子类能继承
+    private $age;//外部不能访问，子类不能继承
+    protected $money;//外部不能访问，子类能继承
+    public function __construct($name,$age,$money)
+    {
+        $this->name=$name;
+        $this->age=$age;
+        $this->money = $money;
+    }
+    public function getCard(){
+        echo '名字'.$this->name.'年龄'.$this->age.'钱'.$this->money;
+    }
+}
+class Yellow extends Person{
+    //重写
+    public function __construct($name, $age, $money)
+    {
+        //重载
+        parent::__construct($name, $age, $money);
+    }
+    //重写
+    public function getCard(){
+        echo $this->money;//能够继承父类被保护的属性
+        //重载
+        parent::getCard();
+    }
+}
+$s= new Yellow('xiaowang',18,10);
+$s->getCard();
+```
+
+
+
+## PHP 抽象类与接口
+
+### 抽象方法
+
+我们在类里面定义的没有方法提的方法就是抽象方法。所谓的没有方法体指的是，在声明的时候没有大括号以及其中的内容，而是直接在声明时在方法名后加上分号结束，另外在声明抽象方法时方法还要加一个关键字"abstract"来修饰。
+
+例如：
+
+```
+abstract function fun1(); 
+abstract function fun2(); 
+```
+
+### 抽象类
+
+只要一个类里面有一个方法是抽象方法，那么这个类就定义为抽象类，抽象类也要使用“abstract”关键字来修饰；在抽象类里面可以有不是抽象的方法和成员属性，但只要有一个方法是抽象的方法，这个类就必须声明为抽象类，使用“abstract”修饰。
+
+抽像类的特点：不能实例化的，也就是不能new成对象；若想使用类，就必须定义一个类继承这个抽象类，并定义覆盖父类的抽象方法(实现抽象方法)。
+
+例如：
+
+```
+abstract class demo{
+var $test;
+abstract function fun1();
+abstract function fun2();
+}
+```
+
+1.含有抽象方法的类必须是抽象类。
+
+2.抽象类不一定非的含有抽象方法。
+
+3.抽象类可以含有普通方法。
+
+4.抽象类不能被实例化，必须有一个子类继承并且把抽象类的抽象方法实现。
+
+```
+abstract class Person{
+    //抽象类中可以有普通方法
+    public function eat(){
+        echo '吃';
+    }
+    //抽象方法 没有方法体
+    public abstract function run();
+}
+//抽象类必须有一个子类继承，并且实现抽象类中的抽象方法
+class Man extends Person{
+    function __construct()
+    {
+    }
+    //抽象类中抽象方法必须在子类中实现
+    public function run()
+    {
+        // TODO: Implement run() method.
+        echo 'run';
+    }
+}
+$man =new Man();
+$man->eat();
+$man->run();
+```
+
+### 接口
+
+1.接口的关键字是interface
+
+2.接口可以声明常量也可以抽象一些方法。
+
+3.接口中的方法都是抽象方法，不用abstract定义
+
+4.接口不能被实例化，需要一个类去实现它。
+
+5.一个类不能继承多个类，一个类可以实现多个接口
+
+```
+interface Person{
+    //接口中可以声明常量，也可以抽象方法，抽象方法不用abstract去定义
+    const name = "xiaowang";
+    public function run();
+    public function eat();
+}
+interface Study {
+    public function study();
+}
+//一个类不可以继承多个类，但是一个类可以实现多个接口，并且接口中的抽象方法必须有子类实现
+class Student implements Person,Study{
+    const data = 3.14;
+    function run()
+    {
+        // TODO: Implement run() method.
+        echo 'run';
+    }
+    function eat()
+    {
+        // TODO: Implement eat() method.
+        echo 'eat';
+    }
+    function study()
+    {
+        echo 'study';
+    }
+    function test(){
+        return self::data;
+    }
+    //静态的方法
+    static function test1(){
+        return self::data;
+    }
+}
+$xw = new Student();
+echo $xw::name;
+echo $xw->test();
+echo $xw::test1();
+```
+
+
+
+
+
+
+
+
+
