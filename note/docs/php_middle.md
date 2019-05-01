@@ -181,7 +181,12 @@ echo $player_1->getName();
 echo "<br>";
 ```
 
-**__clone()：当使用clone关键字克隆一个对象时自动调用，作用是为新克隆的对象初始化赋值**
+### __clone()：当使用clone关键字克隆一个对象时自动调用，作用是为新克隆的对象初始化赋值
+
+```
+//禁止克隆对象
+   private function __clone(){}
+```
 
 ### _sleep()：对象序列化时自动调用，返回一个数组，数组中的值就是可以序列化的属性。可以定义serialize()序列化时返回的数据
 
@@ -371,11 +376,240 @@ echo $xw->test();
 echo $xw::test1();
 ```
 
+## 关键字
 
+**final：只能用来修饰类和方法，不能修饰成员属性**
+特性：
+使用final关键字标识的类不能被继承
+使用funal关键字标识的方法不能被子类覆盖（重新），是最终版本
+目的：
+1.安全，2.没必要继承或重新
 
+**static：用于修饰类的成员属性和成员方法（即静态属性和静态方法）**
+类中的静态属性和方法不用实例化（new）就可以直接使用类名访问
+格式：
+类::$静态属性 类::$静态方法
+在类的方法中，不能用this->来引用变量或静态方法，而需要用self来引用
+self::$静态属性 self::$静态方法
+静态方法中不可以使用非静态的内容，就是不让用$this
+静态属性是共享的，也就是new很多对象也是公用一个属性
 
+**单例设计模式：一个类只能有一个实例对象存在**
+静态属性是共享的，也就是new很多对象也是公用一个属性
 
+**instanceof ：用于检测当前对象实例是否属于某一个类或这个类的子类**
 
+php中当new实例化一个不存在的类时，则自动调用此函数__autoload()，并将类名作为参数传入此函数。可 以使用这个实现类的自动加载。
+对象串行化（序列化）
+class_exists：检查类是否已定义
+get_class_methods：返回由类的方法名组成的数组
+get_class：返回对象的类名
+get_object_vars：返回由对象属性组成的关联数组
+get_parent_class：返回对象或类的父类名
+is_a：如果对象属于该类或该类是此对象的父类，则返回TRUE
+method_exits：检查类的方法是否存在
+property_exists：检查对象或类是否具有该属性
+
+## 异常处理
+
+系统自带的异常处理
+
+```
+try{
+…
+if($_GET['num']==1){
+        throw new Exception('user');
+    }
+} catch(Exception $e) { // Exception错误类
+echo “错误的文件：”;
+echo $e -> getFile(); // 得到发生异常的文件
+echo “错误的行：”;
+echo $e -> getLine(); // 得到发生异常的行
+echo “错误的代码：”;
+echo $e -> getCode(); // 得到发生异常的代码
+echo “错误信息：”;
+echo $e -> getMessage(); // 异常信息
+}
+自定义异常处理
+class myException extends Exception { // 继承错误类
+…
+}
+捕捉多个异常处理
+```
+
+## PHP PDO
+
+### 如何使用PDO连接数据库
+
+```
+<?php
+header("Content-Type:text/html;charset=utf-8");
+$dbms = "mysql";
+$host = "localhost";
+$dbName = "phplesson";
+$user = "root";
+$pass = "";
+$dsn = "$dbms:host=$host;dbname=$dbName";
+try {
+    $dbh = new PDO($dsn, $user, $pass);
+    $dbh -> query('set names utf-8');
+
+    echo "连接成功！";
+    $newstitle = $_REQUEST['newstitle'];
+    $newsimg = $_REQUEST['newsimg'];
+    $newscontent = $_REQUEST['newscontent'];
+    $addtime = $_REQUEST['addtime'];
+    $query = "INSERT INTO `news`(`newstitle`, `newsimg`, `newscontent`, `addtime`) VALUES ('" . $newstitle . "','" . $newsimg . "','" . $newscontent . "','" . $addtime . "')";
+
+//    foreach ($dbh->query("SELECT*FROM `news`WHERE 1") as $row) {
+//        print_r($row);
+//    }
+//    $query = "INSERT INTO `news`(`newstitle`, `newsimg`, `newscontent`, `addtime`) VALUES ('题1111  11目1','图片','内容','2015-09-01')";
+//    $query = "DELETE FROM `news` WHERE 'newsid'=15";
+
+    $res = $dbh->exec($query);
+    echo "数据库操作成功，受影响的函数" . $res;
+    $dbh = null;
+} catch (PDOException $e) {
+    die("Error" . $e . getMessage() . "</br>");
+}
+?>
+```
+
+### 什么是单例模式
+
+```
+单例模式三个要点：
+1.需要一个保存类的唯一实例的静态成员变量：
+private static $_instance;
+2.private function __construct()
+{
+    $this->_db = pg_connect('xxxx');
+}
+private function __clone()
+{
+}//覆盖__clone()方法，禁止克隆
+3.必须提供一个访问这个实例的公共的静态方法（通常为getInstance方法），从而返回唯一实例的一个引用
+
+public static function getInstance()
+{
+    if(! (self::$_instance instanceof self) )
+    {
+        self::$_instance = new self();
+    }
+    return self::$_instance;
+
+} 
+```
+
+### PHP单例模式封装数据库的增删改查
+
+```
+<?php
+class Db{
+    //需要一个保存类的唯一实例的静态成员变量
+    //数据库连接对象
+    private static $_instance;
+    private static $table_name;
+    private $pdo;
+    private function __construct()
+    {
+        $this->pdo = new PDO("mysql:host=localhost;dbname=phptest","root","");
+        $this->pdo->query("set names utf8");
+    }
+    //覆盖__clone()方法，禁止克隆
+    private function __clone()
+    {
+    }
+    //必须提供一个访问这个实例的公共的静态方法（通常为getInstance方法），从而返回唯一实例的一个引用
+    //返回数据库实例对象
+    public static function getDb($table_name)
+    {
+        self::$table_name = $table_name;
+        if(! (self::$_instance instanceof self) )
+        {
+            self::$_instance = new self();
+        }
+        return self::$_instance;
+
+    }
+    function add($table_name, $data){
+        $keys = implode(",", array_keys($data));
+        $value = "'".implode("','", array_values($data))."'";
+        $sql = "insert into $table_name ($keys) values($value) ";
+        $r = $this->pdo->exec($sql);
+        $this->getErrorInfo();
+        return $r;
+    }
+    function addAll($table_name, $data){
+        $keys = implode(",", array_keys($data[0]));
+
+        $arr = [];
+        foreach ($data as $k => $v) {
+            $arr[] = "('".implode("','", array_values($v))."')";
+        }
+        $value = implode(",", $arr);
+
+        $sql = "insert into $table_name ($keys) values $value";
+        $r = $this->pdo->exec($sql);
+        $this->getErrorInfo();
+        return $r;
+
+    }
+    function update($table_name, $data){
+        $id = $data['id'];
+        unset($data['id']);
+        $arr = [];
+        foreach($data as $k=>$v){
+            $arr[] = $k."='".$v ."'";
+        }
+        $str = implode(",", $arr);
+        $sql = "update $table_name set $str where id=$id";
+
+        $r = $this->pdo->exec($sql);
+        $this->getErrorInfo();
+        return $r;
+    }
+
+    function select($table_name, $where = '1=1'){
+        $sql = "select * from $table_name where $where ";
+        $res = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $this->getErrorInfo();
+        return $res;
+
+    }
+    function find($table_name, $where = '1=1'){
+        $sql = "select * from $table_name where $where ";
+        $res = $this->pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+        $this->getErrorInfo();
+        return $res;
+    }
+    function getErrorInfo(){
+        if($this->pdo->errorCode() != '00000'){
+            echo "<pre>";
+            print_r($this->pdo->errorInfo());
+            exit;
+        }
+    }
+    function delete($id){
+        $table_name = self::$table_name;
+        if(is_array($id)){
+            $id = implode(',', $id);
+        }
+        $sql = "delete from $table_name where id in ($id)";
+        $r = $this->pdo->exec($sql);
+        $this->getErrorInfo();
+        return $r;
+    }
+}
+function M($table_name){
+    $db = Db::getDb($table_name);
+    return $db;
+};
+$r = M('news')->delete(726);
+echo $r;
+?>
+```
 
 
 
