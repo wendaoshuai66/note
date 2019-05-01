@@ -12,5 +12,6 @@
 1. [Linux基础入门](#docs/Linux)
 1. [Php与MySql开发入门上](#docs/php_up)
 1. [Php与MySql开发入门中](#docs/php_middle)
+1. [Php与MySql开发入门下](#docs/php_down)
 
 
