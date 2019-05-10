@@ -269,22 +269,31 @@
 		console.log(obj2)
 		obj1比obj2更空
 		*/
-		/*var Mnz =  Object.create(null);
+		/*var ø =  Object.create(null);
       function foo(a,b) {
           console.log('a:'+a+',b:'+b )
       }
       // foo.apply(null,[1,2])
       //柯粒化
-      var bar=foo.bind(Mnz,2);
+      var bar=foo.bind(ø,2);
       bar(3)*/
 		//软绑定
 
         if(!Function.prototype.softBind){
             Function.prototype.softBind=function(obj){
                 var fn=this;
-                console.log(this)
+                //捕获所有curried参数
+                 var curried = [].slice.call(arguments,1)
+                 var bound =function(){
+                     return fn.apply(
+                        (!this || this ===(window || global)) ?obj :this curried.concat.apply( curried, arguments )
+                     )
+                 }
+                 bound.prototype = Object.create(fn.prototype)
+                 return bound;
             }
         }
+    
     </script>
 
 </body>
