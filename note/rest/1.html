@@ -243,6 +243,43 @@
       }
       var english=new English('111','111')
 		console.log(english)*/
+
+
+		//被忽略的js
+		  //把null或者undefined作为this的绑定对象传入call、apply 、bind，这些值会被忽略，实际用的是默认的绑定规则，直接上代码：
+		/* function bar() {
+			 console.log(this.a)
+         }
+         var a = 2;
+		 /!*bar.call(undefined)//2*!/
+	     bar.apply(null)//2*/
+		//一种非常常见的做法是使用apply(...),来展开一个数组
+       // 并当作参数传入一个函数。类似地，bind(..) 可以对参数进行柯里化（预先设置一些参数）
+		/*function foo(a,b) {
+			console.log('a:'+a+',b:'+b )
+        }
+        // foo.apply(null,[1,2])
+	  //柯粒化
+		var bar=foo.bind(null,2);
+		bar(3)*/
+		//更安全的this 传入特殊的对象，把this绑定到这个对象不会对程序产生任何副作用
+		/*var obj1 = Object.create(null);
+		var obj2 = {}
+		console.log(obj1)
+		console.log(obj2)
+		obj1比obj2更空
+		*/
+		/*var Mnz =  Object.create(null);
+      function foo(a,b) {
+          console.log('a:'+a+',b:'+b )
+      }
+      // foo.apply(null,[1,2])
+      //柯粒化
+      var bar=foo.bind(Mnz,2);
+      bar(3)*/
+		//软绑定
+
     </script>
+
 </body>
 </html>
