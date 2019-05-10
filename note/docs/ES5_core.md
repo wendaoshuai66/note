@@ -361,3 +361,127 @@ bind(..) 会返回一个硬编码的新函数，它会把参数设置为 this �
 3. 这个新对象会绑定到函数调用的 this。
 4. 如果函数没有返回其他对象，那么 new 表达式中的函数调用会自动返回这个新对象
 
+### 被忽略的this
+把null或者undefined作为this的绑定对象传入call、apply 、bind，这些值会被忽略，实际用的是默认的绑定规则，直接上代码：
+
+```
+function bar() {
+	 console.log(this.a)
+ }
+ var a = 2;
+ /!*bar.call(undefined)//2*!/
+ bar.apply(null)//2
+```
+
+一种非常常见的做法是使用apply(...),来展开一个数组并当作参数传入一个函数。类似地，bind(..) 可以对参数进行柯里化（预先设置一些参数）
+
+```
+function foo(a,b) {
+		console.log('a:'+a+',b:'+b )//a:1,b:2
+    }
+// foo.apply(null,[1,2])
+```
+
+柯粒化
+
+```
+var bar=foo.bind(null,1);
+		bar(2)
+```
+更安全的this 传入特殊的对象，把this绑定到这个对象不会对程序产生任何副作用
+
+```
+var obj1 = Object.create(null);
+var obj2 = {}
+	console.log(obj1)
+	console.log(obj2)
+	obj1比obj2更空
+var ø =  Object.create(null);
+  function foo(a,b) {
+      console.log('a:'+a+',b:'+b )
+  }
+  // foo.apply(null,[1,2])
+  //柯粒化
+  var bar=foo.bind(ø,2);
+  bar(3)
+```
+
+### this---->软绑定
+问题：硬绑定这种方式可以把 this 强制绑定到指定的对象(除了使用 new 时)，防止函数调用应用默认绑定规则。问题在于，硬绑定会大大降低函数的灵活性，使 用硬绑定之后就无法使用隐式绑定或者显式绑定来修改 this
+
+
+解决方法：默认绑定指定一个全局对象和 undefined 以外的值，那就可以实现和硬绑定相 同的效果，同时保留隐式绑定或者显式绑定修改 this 的能力。
+
+```
+if(!Function.prototype.softBind){
+    Function.prototype.softBind=function(obj){
+        var fn=this;
+        var args=Array.prototype.slice.call(arguments,1);
+        var bound=function(){
+            return fn.apply(
+                (!this||this===(window||global))?obj:this,
+                args.concat.apply(args,arguments)
+            );
+        };
+        bound.prototype=Object.create(fn.prototype);
+        return bound;
+    };
+}
+```
+
+效果
+
+```
+function foo(){
+    console.log("name: "+this.name);
+}
+
+var obj1={name:"obj1"},
+    obj2={name:"obj2"},
+    obj3={name:"obj3"};
+
+var fooOBJ=foo.softBind(obj1);
+fooOBJ();//"name: obj1" 在这里软绑定生效了，成功修改了this的指向，将this绑定到了obj1上
+
+obj2.foo=foo.softBind(obj1);
+obj2.foo();//"name: obj2" 在这里软绑定的this指向成功被隐式绑定修改了，绑定到了obj2上
+
+fooOBJ.call(obj3);//"name: obj3" 在这里软绑定的this指向成功被硬绑定修改了，绑定到了obj3上
+
+setTimeout(obj2.foo,1000);//"name: obj1"
+/*回调函数相当于一个隐式的传参，如果没有软绑定的话，这里将会应用默认绑定将this绑定到全局环
+境上，但有软绑定，这里this还是指向obj1*/
+
+```
+实现效果
+
+在第一行，先通过判断，如果函数的原型上没有softBind()这个方法，则添加它，然后通过Array.prototype.slice.call(arguments,1)获取传入的外部参数，这里这样做其实为了函数柯里化，也就是说，允许在软绑定的时候，事先设置好一些参数，在调用函数的时候再传入另一些参数（关于函数柯里化大家可以去网上搜一下详细的讲解）最后返回一个bound函数形成一个闭包，这时候，在函数调用softBind()之后，得到的就是bound函数，例如上面的var fooOBJ=foo.softBind(obj1)。
+
+
+在bound函数中，首先会判断调用软绑定之后的函数（如fooOBJ）的调用位置，或者说它的this的指向，如果!this（this指向undefined）或者this===(window||global)（this指向全局对象），那么就将函数的this绑定到传入softBind中的参数obj上。如果此时this不指向undefind或者全局对象，那么就将this绑定到现在正在指向的函数（即隐式绑定或显式绑定）。fn.apply的第二个参数则是运行foo所需要的参数，由上面的args（外部参数）和内部的arguments（内部参数）连接成，也就是上面说的柯里化。
+其实在第一遍看这个函数时，也有点迷，有一些疑问，比如var fn=this这句，在foo通过foo.softBind()调用softBind的时候，fn到底指向谁呢？是指向foo还是指向softBind？我们可以写个demo测试，然后可以很清晰地看出fn指向什么：
+
+```
+var a=2;
+function foo(){
+}
+foo.a=3;
+Function.prototype.softBind=function(){
+    var fn=this;
+    return function(){
+        console.log(fn.a);
+    }
+};
+Function.prototype.a=4;
+Function.prototype.softBind.a=5;
+
+foo.softBind()();//3
+Function.prototype.softBind()();//4
+```
+可以看出，fn（或者说this）的指向还是遵循this的绑定规则的，softBind函数定义在Function的原型Function.prototype中，但是JavaScript中函数永远不会“属于”某个对象（不像其他语言如java中类里面定义的方法那样），只是对象内部引用了这个函数，所以在通过下面两种方式调用时，fn（或者说this）分别隐式绑定到了foo和Function.prototype，所以分别输出3和4。后面的fn.apply()也就相当于foo.apply()。
+
+
+
+
+
+
