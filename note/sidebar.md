@@ -1,4 +1,4 @@
-# [学习笔记]()
+[学习笔记]()
 
  [刘帅]()
 
@@ -13,6 +13,8 @@
 1. [Php与MySql开发入门上](#docs/php_up)
 1. [Php与MySql开发入门中](#docs/php_middle)
 1. [Php与MySql开发入门下](#docs/php_down)
-1. [ES5核心技术](#docs/ES5_core)
+1. [不知道的JavaScript_1](#docs/ES5_core)
+1. [不知道的JavaScript_2](#docs/ES5_core1)
+
 
 
