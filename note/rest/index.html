@@ -107,11 +107,37 @@
         // }
 
 
+        // var p=function test(){
+        //     //只能在函数内部访问
+        //     test =1;
+        //     console.log(typeof test)//function
+        // }
+        // p()
+        // console.log(test)//报错 ，函数表达式外部不能访问test，只能在函数内部访问
 
-        if(false){
-            var a= 1;
+
+
+        // var o={
+        //     foo:function(){
+        //         console.log(11)
+        //     },
+        //     bar(){
+        //         console.log(22)
+        //     }
+        // }
+        // var p1=o.foo.bind({});
+        // new p1();
+        // var p2=o.bar.bind({}) ;
+        // new p2();
+        this.a = 20;
+        function test(){
+            console.log(this.a)
         }
-        console.log(a)
+        var obj ={
+            a:40,
+        }
+        var result=test.bind(obj)
+        new result();
     </script>
 </body>
 </html>
