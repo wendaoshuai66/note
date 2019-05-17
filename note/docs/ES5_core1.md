@@ -235,6 +235,7 @@ function test(){
 test()
 ```
 ####引申
+```
 var length =10;
 function test(){
     console.log(this.length)//10 2
@@ -247,3 +248,4 @@ var obj = {
     }
 }
 obj.method(test,1)
+```
