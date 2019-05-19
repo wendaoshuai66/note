@@ -194,18 +194,18 @@
         // }
         // var m = {a:1}
         // console.log(m.v)
-        var length =10;
-        function test(){
-            console.log(this.length)
-        }
-        var obj = {
-            length:5,
-            method:function(){
-                test()
-                arguments[0]()
-            }
-        }
-        obj.method(test,2)
+        // var length =10;
+        // function test(){
+        //     console.log(this.length)
+        // }
+        // var obj = {
+        //     length:5,
+        //     method:function(){
+        //         test()
+        //         arguments[0]()
+        //     }
+        // }
+        // obj.method(test,2)
         // (function(){
         //     if(false){
         //         function a(){
@@ -214,6 +214,23 @@
         //     }
         //     a()
         // })()
+        // (function (){
+           
+        // })()
+        // function foo(str) {
+        //      "use strict";
+        //     eval( str );
+        //     console.log( a ); // ReferenceError: a is not defined
+        // }
+        // foo( "var a = 2" );
+
+        var nums = {
+        "first": 7,
+        "second": 14,
+        "third": 13
+        }
+        console.log(Object.keys(nums))
+        console.log(Object.entries(nums))
     </script>
 </body>
 </html>

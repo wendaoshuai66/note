@@ -15,6 +15,8 @@
 1. [Php与MySql开发入门下](#docs/php_down)
 1. [不知道的JavaScript_1](#docs/ES5_core)
 1. [不知道的JavaScript_2](#docs/ES5_core1)
+1. [ECMAScript5.1新增语法上](#docs/ES5_top)
+
 
 
 
