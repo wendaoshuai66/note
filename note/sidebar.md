@@ -16,9 +16,8 @@
 1. [不知道的JavaScript_1](#docs/ES5_core)
 1. [不知道的JavaScript_2](#docs/ES5_core1)
 1. [ECMAScript5.1新增语法上](#docs/ES5_top)
-1. [ECMAScript5.1新增语法上](#docs/ES5_bottom）
-
-
+1. [ECMAScript5.1新增语法下](#docs/ES5_bottom)
+1. [JavaScript与QA工程师](#docs/js_and_qa)
 
 
 
