@@ -341,3 +341,36 @@ var luckyNums = JSON.stringify(nums, function(key, value) {
 ##添加对象
 
 ###1.Object.keys() 获取对象的key
+实现机制：
+
+```
+```
+
+###2.Object.create() 获取对象的副本，实现类的继承
+
+```
+```
+###3.Object.assign() 浅拷贝
+
+```
+```
+###4.Object.defineProperty(obj, prop, descriptor) 直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。
+
+```
+```
+###5.Object.defineProperties(obj, props) 在其上定义或修改属性的对象。
+```
+
+```
+###6.Object.entries() 返回一个给定对象自身可枚举属性的键值对数组
+
+```
+```
+###7.Onject.fromEntries() 可以将 Map 转化为 Object:
+```
+
+```
+###8.Object.freeze()
+可以冻结一个对象，冻结指的是不能向这个对象添加新的属性，不能修改其已有属性的值，不能删除已有属性，以及不能修改该对象已有属性的可枚举性、可配置性、可写性。该方法返回被冻结的对象。
+###9.Object.is() 判断两个值是否是相同的值
+###10.Object.values() 返回一个数组，其元素是在对象上找到的可枚举属性值

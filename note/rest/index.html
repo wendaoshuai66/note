@@ -224,13 +224,78 @@
         // }
         // foo( "var a = 2" );
 
-        var nums = {
-        "first": 7,
-        "second": 14,
-        "third": 13
+        // var nums = {
+        // "first": 7,
+        // "second": 14,
+        // "third": 13
+        // }
+        // console.log(Object.keys(nums))
+        // console.log(Object.entries(nums))
+
+        // var result=["1", "2", "3"].map(parseInt);
+        // console.log(result)//[1,NaN,NaN]
+        //  惯性思维是[1,2,3]
+
+        //map参数
+        //1.callback
+        //   回调函数有三个参数：
+        //             currentValue
+        //               callback 数组中正在处理的当前元素。
+        //              index可选
+        //                 callback 数组中正在处理的当前元素的索引。
+        //               array可选
+        //                 callback  map 方法被调用的数组。
+        //2.thisArg 执行 callback 函数时使用的this 值。
+
+        // 通常使用parseInt时,只需要传递一个参数.
+        // 但实际上,parseInt可以有两个参数.第二个参数是进制数.
+        // 可以通过语句"alert(parseInt.length)===2"来验证.
+        //解决方法
+
+
+       if(!Array.prototype.map){
+        Array.prototype.map=function(callback,oThis){
+            var A //创建一个新数组
+            ,T  //是每个个回调函数执行 callback 函数时使用的this 值
+            ,k;
+            //首先判断
+            if(this===null){
+                throw new TypeError('this is null or undefined')
+            }
+            var o = Object(this);
+            var len = o.length;
+            if(Object.prototype.toString.call(callback) != "[object Function]"){
+                throw new TypeError(callback+ '  is not function')
+            }
+
+            A = new Array(len);
+            //如果有oThis是oThis，没有T为undefined
+            if(oThis){
+                T = oThis
+            }
+
+            k= 0;
+            while(k<len){
+                var kValue,deepValue;
+                if(k in o){
+                    kValue = o[k]
+                    deepValue = callback.call(T,kValue,k,o)
+                    A[k] = deepValue
+                }
+                k++
+            }
+            return A;
         }
-        console.log(Object.keys(nums))
-        console.log(Object.entries(nums))
-    </script>
+       }
+        console.log(["1", "2", "3"].map(val=>parseInt(val)))
+        var result=["1", "2", "3"]
+        // result.map()
+        // function returnInt(ele){
+        //     return parseInt(ele,10)
+        // }
+        // console.log(["1", "2", "3"].map(returnInt))
+        // console.log(["1", "2", "3"].map(val=>parseInt(val)))
+        // console.log(["1", "2", "3"].map(Number))
+        </script>
 </body>
 </html>
