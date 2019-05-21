@@ -1,17 +1,17 @@
 #ECMAScript5.1新增语法上
 ##额外的数组
-```Array.prototype.indexOf```
+###Array.prototype.indexOf
 
 
-```Array.prototype.lastIndexOf```
+###Array.prototype.lastIndexOf
 
-```Array.prototype.every```
+###Array.prototype.every
 
-```Array.prototype.some```
+###Array.prototype.some
 
-```Array.prototype.forEach```
+###Array.prototype.forEach
 
-```Array.prototype.map```
+###Array.prototype.map
 
 通常情况下，map 方法中的 callback 函数只需要接受一个参数，就是正在被遍历的数组元素本身。但这并不意味着 map 只给 callback 传了一个参数。这个思维惯性可能会让我们犯一个很容易犯的错误。
 
@@ -89,8 +89,8 @@ var result=["1", "2", "3"].map(parseInt);
 
 
 
-```Array.prototype.filter```
+###Array.prototype.filter
 
-```Array.prototype.reduce```
+###Array.prototype.reduce
 
-```Array.prototype.reduceRight```
+###0Array.prototype.reduceRight
