@@ -57,6 +57,13 @@ Node.js
 
 karma自动化runner集成 PhantomJS 无刷新
 
+
+###步骤
+
+1.新建一个文件夹，安装node.js,进入文件夹 在终端中 npm init -y 初始化项目
+
+
+
 ##性能测试
 
 面向切面编程AOP无侵入式统计
