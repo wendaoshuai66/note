@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    
+<body>
+<script>
+    /*Function.prototype.bind = function (oThis) {
+        if( typeof this !=='function'){
+            throw new TypeError('请调用函数')
+        }
+        var aArgs = Array.prototype.slice.call(arguments,1)
+        var fnTobind =this;
+        var fnTp = function () {
+
+        }
+        var fnBound = function () {
+            return fnTobind.apply((this instanceof fnTobind && oThis ?this:oThis),aArgs.concat(Array.prototype.slice.call(arguments)))
+        }
+        fnTp.prototype = this.prototype
+        fnBound.prototype = new fnTp()
+        return fnBound
+    }*/
+
+   /*Function.prototype.bind = function (oThis) {
+       if(typeof this !== 'function'){
+           throw new TypeError('请调用函数')
+       }
+       var aArag = Array.prototype.slice.call(arguments,1),
+           fTobind = this,
+           fNOP =function () {
+
+           },
+           fBound = function () {
+               fTobind.apply(this instanceof fNOP && oThis?this:oThis,aArag.concat(Array.prototype.slice.call(arguments)))
+           };
+           if(this.prototype){
+               fNOP.prototype = this.prototype;
+               fBound.prototype = new fNOP();
+           }
+           return fBound;
+   }*/
+        /*Function.prototype.softBind = function(obj) {
+        var fn = this;
+        // 捕获所有 curried 参数
+        var curried = [].slice.call( arguments, 1 );
+        var bound = function() {
+            return fn.apply(
+                (!this || this === (window || global)) ?
+                    obj : this,
+            curried.concat.apply( curried, arguments )
+        );
+        };
+        bound.prototype = Object.create( fn.prototype );
+        return bound;
+    };
+    function test(data1,data2) {
+       console.log(data1)
+       console.log(data2)
+    }
+    test.prototype.getName =function () {
+        console.log(111)
+    }*/
+
+
+    //硬绑
+
+   /* if(!Function.prototype.bind){
+        Function.prototype.bind = function (oThis) {
+            if(typeof this !==  'function'){
+                throw new TypeError('该是函数调用')
+            }
+            var aArag = Array.prototype.slice.call(arguments,1)
+                FTobind = oThis,
+                FNOP = function () {
+
+                },
+                fbound = function () {
+                    FTobind.call(this instanceof FNOP && oThis ?this:oThis,aArag.concat( Array.prototype.slice.call(arguments)))
+                }
+            if(this.prototype){
+                FNOP.prototype = this.prototype;
+                fbound.prototype = new FNOP;
+            }
+            return fbound
+        }
+    }
+
+    //
+    var obj ={a:1}
+    var res=test.softBind(obj,1)
+    var r=new res('res')
+    console.log(r)*/
+   
+   
+   
+   /*function Car(color,price) {
+       this.color = color
+       this.price = price
+   }
+   Car.prototype.sell =function () {
+       return '该车颜色：'+this.color+'价格：'+this.price
+   }
+   
+   function inherts(parent,obj) {
+       var __proto = Object.create(parent.prototype);
+            __proto.constructor =obj
+            obj.prototype = __proto
+
+   }
+   function Curzze(color,price,speed) {
+       Car.call(this,color,price);
+       this.speed = speed
+   }
+    inherts(Car,Curzze)
+   var curzze = new Curzze('red',200,3000)
+    console.log(curzze)*/
+
+
+  /*class Car{
+      construct(color,price){
+          this.color = color;
+          this.price = price;
+      }
+      sell(){
+          return '该车颜色：'+this.color+'价格：'+ this.price
+      }
+  }
+  class Curzze extends Car{
+      constructor(color,price,speed){
+
+
+
+          super(color,price);
+
+          this.speed = speed;
+      }
+  }
+    var curzze = new Curzze('red',200,3000)
+    console.log(curzze)*/
+   /* Array.prototype.map = function (callback,oThis) {
+        var A, T,k;
+        if(this===null){
+            throw new TypeError('this is null or not undefined')
+        }
+        var o = Object(this);
+        var len = o.length;
+        if(typeof callback !== 'function'){
+            throw new TypeError(callback + ' is not callback')
+        }
+
+        if(oThis){
+            T = oThis;
+        }
+        A = new Array(len)
+        k=0;
+        while (k<len) {
+            var currentValue,deepValue;
+            if(k in o){
+                currentValue = o[k]
+                deepValue = callback.call(T,currentValue,k,o)
+                A[k] = deepValue
+            }
+            k++
+        }
+        return A;
+    }
+        console.log(['1', '2', '3'].map(Number))*/
+        /*var arr = ['0','1', '2', '3','4','5'].map(Number)
+        var res=arr.reduce(function (previousValue,current) {
+            console.log(previousValue+'-----previousValue')
+            console.log(current+'-----current')
+            return previousValue + current
+        })
+        console.log(res)*/
+      //计算数组中每个元素出现的次数
+
+         /*Object.defineProperty(Array.prototype,'reduce',function (callback) {
+             
+         })*/
+         //预备知识
+
+         //语法  Object.defineProperty(obj, prop, descriptor)
+         // obj 要在其上定义属性的对象。
+         // prop 要定义或修改的属性的名称。
+         // descriptor 将被定义或修改的属性描述符。
+
+         //属性描述符：数据描述符和存取描述符
+         //数据描述符和存取描述符均有以下可选键值
+        //configurable 默认为false 为true  该属性描述符才能够被改变，同时该属性也能从对应的对象上被删除
+        //数据描述符可选键值  该属性对应的值。value： 可以是任何有效的 JavaScript 值（数值，对象，函数等）。默认为 undefined。
+        //                                 writable:当且仅当该属性的writable为true时，value才能被赋值运算符改变。默认为 false
+
+        // var names = ['Alice', 'Bob', 'Tiff', 'Bruce', 'Alice'];
+        // var res = names.reduce((allNames,cur)=>{
+        //     if(cur in allNames){
+        //     allNames[cur]++
+        // }else{
+        //     allNames[cur] = 1
+        // }
+        // return  allNames
+        // },{})
+        // console.log(res)
+        // Object.defineProperty(Array.prototype,'reduce',{
+        //     value:function (callback) {
+        //         if(this === null){
+        //             throw new TypeError('this is null or undefined')
+        //         }
+        //         if(typeof callback !=='function'){
+        //             throw new TypeError(callback+'is not fuction')
+        //         }
+        //
+        //         var o = Object(this);
+        //         var len = o.length;
+        //         var k=0;
+        //         var value;
+        //         if(arguments.length>=2){
+        //             value = arguments[1]
+        //         }else {
+        //             while (k<len && !(k in o)){
+        //                 k++
+        //             }
+        //             value = o[k++]
+        //         }
+        //         while (k<len){
+        //             if (k in o) {
+        //                 value = callback(value, o[k], k, o);
+        //             }
+        //
+        //             // d. Increase k by 1.
+        //             k++;
+        //         }
+        //         return value
+        //     }
+        // })
+        // var arr = [1,2,3,4,5]
+        // var r=arr.reduce(function (previousValue,currentValue) { return previousValue+currentValue })
+</script>
+</body>
+
+</body>
+</html>
