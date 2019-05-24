@@ -195,15 +195,7 @@
         //数据描述符可选键值  该属性对应的值。value： 可以是任何有效的 JavaScript 值（数值，对象，函数等）。默认为 undefined。
         //                                 writable:当且仅当该属性的writable为true时，value才能被赋值运算符改变。默认为 false
 
-        // var names = ['Alice', 'Bob', 'Tiff', 'Bruce', 'Alice'];
-        // var res = names.reduce((allNames,cur)=>{
-        //     if(cur in allNames){
-        //     allNames[cur]++
-        // }else{
-        //     allNames[cur] = 1
-        // }
-        // return  allNames
-        // },{})
+        
         // console.log(res)
         // Object.defineProperty(Array.prototype,'reduce',{
         //     value:function (callback) {
@@ -240,40 +232,51 @@
         // var arr = [1,2,3,4,5]
         // var r=arr.reduce(function (previousValue,currentValue) { return previousValue+currentValue })
 
-       Object.defineProperty(Array.prototype,'reduce',{
-           value:function (callback) {
-               if(this===null){
-                   throw new TypeError('this is null or undefined')
-               }
-               if(typeof callback !=='function'){
-                   throw new TypeError(callback+'is not function')
-               }
-               var o = Object(this)
-               var len = o.length;
-               var value;
-               var k = 0;
-               if(arguments>=2){
-                   value = arguments[1]
-               }else {
-                   while (k<len && !(k in o)){
-                       k++
-                   }
-                   if (k >= len) {
-                       throw new TypeError( 'Reduce of empty array ' +
-                           'with no initial value' );
-                   }
-                   value = o[k++]
-               }
-               while (k<len){
-                   if(k in o){
-                       value = callback(value,o[k],k,o);
-                   }
-                   k++
-               }
-               console.log(value)
-               return value
-           }
-       })
+        Object.defineProperty(Array.prototype,'reduce',{
+            value:function(callback){
+                if(this === null){
+                    throw new TypeError('this is null or undefined')
+                }
+                if(typeof callback !== 'function'){
+                    throw new TypeError(callback+'is not function')
+                }
+                var o =Object(this)
+                var len = o.length;
+                var value;
+                var k = 0;
+                if(arguments.length>=2){
+                    value = arguments[1];
+                }else{
+                    while(k<len && !(k in o)){
+                        k++
+                    }
+                    if(k>=len){
+                        throw new TypeError('this is empty array')
+                    }
+                    value = o[k++]
+                }
+
+                while(k<len){
+                    if(k in o){
+                        value = callback(value,o[k],k,o)
+                    }
+                    k++
+                }
+                console.log(value)
+                return value
+            }
+        })
+
+
+      var names = ['Alice', 'Bob', 'Tiff', 'Bruce', 'Alice'];
+      names.reduce((pre,cur)=>{
+          if(cur in pre){
+              pre[cur]++
+          }else{
+            pre[cur]=1
+          }
+          return pre
+      },{})
     var arr = [1,2,3,4,5]
     var r=arr.reduce(function (previousValue,currentValue) { return previousValue+currentValue })
 </script>

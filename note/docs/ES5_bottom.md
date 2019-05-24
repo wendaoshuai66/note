@@ -92,5 +92,61 @@ var result=["1", "2", "3"].map(parseInt);
 ###Array.prototype.filter
 
 ###Array.prototype.reduce
+累加对象数组里的值
+
+```
+
+
+      var names = ['Alice', 'Bob', 'Tiff', 'Bruce', 'Alice'];
+      names.reduce((pre,cur)=>{
+          if(cur in pre){
+              pre[cur]++
+          }else{
+            pre[cur]=1
+          }
+          return pre
+      },{})
+```
+
+实现reduce
+
+```
+if(!Array.prototype.reduce){
+        Object.defineProperty(Array.prototype,'reduce',{
+           value:function (callback) {
+               if(this===null){
+                   throw new TypeError('this is null or undefined')
+               }
+               if(typeof callback !=='function'){
+                   throw new TypeError(callback+'is not function')
+               }
+               var o = Object(this)
+               var len = o.length;
+               var value;
+               var k = 0;
+               if(arguments>=2){
+                   value = arguments[1]
+               }else {
+                   while (k<len && !(k in o)){
+                       k++
+                   }
+                   if (k >= len) {
+                       throw new TypeError( 'Reduce of empty array ' +
+                           'with no initial value' );
+                   }
+                   value = o[k++]
+               }
+               while (k<len){
+                   if(k in o){
+                       value = callback(value,o[k],k,o);
+                   }
+                   k++
+               }
+               console.log(value)
+               return value
+           }
+       })
+      }
+```
 
 ###0Array.prototype.reduceRight
