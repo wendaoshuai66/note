@@ -356,8 +356,25 @@ var luckyNums = JSON.stringify(nums, function(key, value) {
 ```
 ###4.Object.defineProperty(obj, prop, descriptor) 直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。
 
-```
-```
+语法  Object.defineProperty(obj, prop, descriptor)
+
+ obj 要在其上定义属性的对象。
+ 
+ prop 要定义或修改的属性的名称。
+ 
+ descriptor 将被定义或修改的属性描述符。
+
+ 属性描述符：数据描述符和存取描述符
+ 
+ 数据描述符和存取描述符均有以下可选键值
+ 
+configurable 默认为false 为true  该属性描述符才能够被改变，同时该属性也能从对应的对象上被删除
+数据描述符可选键值 
+ 
+该属性对应的值。value： 可以是任何有效的 JavaScript 值（数值，对象，函数等）。默认为 undefined。
+
+writable:当且仅当该属性的writable为true时，value才能被赋值运算符改变。默认为 false
+
 ###5.Object.defineProperties(obj, props) 在其上定义或修改属性的对象。
 ```
 
