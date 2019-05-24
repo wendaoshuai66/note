@@ -185,16 +185,7 @@
          //预备知识
 
          //语法  Object.defineProperty(obj, prop, descriptor)
-         // obj 要在其上定义属性的对象。
-         // prop 要定义或修改的属性的名称。
-         // descriptor 将被定义或修改的属性描述符。
-
-         //属性描述符：数据描述符和存取描述符
-         //数据描述符和存取描述符均有以下可选键值
-        //configurable 默认为false 为true  该属性描述符才能够被改变，同时该属性也能从对应的对象上被删除
-        //数据描述符可选键值  该属性对应的值。value： 可以是任何有效的 JavaScript 值（数值，对象，函数等）。默认为 undefined。
-        //                                 writable:当且仅当该属性的writable为true时，value才能被赋值运算符改变。默认为 false
-
+        
         
         // console.log(res)
         // Object.defineProperty(Array.prototype,'reduce',{
@@ -268,15 +259,6 @@
         })
 
 
-      var names = ['Alice', 'Bob', 'Tiff', 'Bruce', 'Alice'];
-      names.reduce((pre,cur)=>{
-          if(cur in pre){
-              pre[cur]++
-          }else{
-            pre[cur]=1
-          }
-          return pre
-      },{})
     var arr = [1,2,3,4,5]
     var r=arr.reduce(function (previousValue,currentValue) { return previousValue+currentValue })
 </script>

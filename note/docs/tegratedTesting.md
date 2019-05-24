@@ -323,3 +323,302 @@ rize是基于node的语法，因此执行
 ```
 node ./e2e/*.spec.js
 ```
+
+##接口测试
+
+前端接口测试一般用测自己，测自己的node接口。 在项目根目录下创建service文件夹和mochaRunner.js文件。
+
+
+1.service文件夹主要放测试同步接口的测试文件。
+
+2.mochaRunner.js主要用于测试异步接口。
+
+###测试框架
+
+使用mocha进行接口测试
+
+###安装mocha
+
+```
+npm install mocha –save-dev
+```
+##测试流程
+我们自己写一段express代码,自测一下。
+强烈建议将Nodemon安装为dev依赖项，这是一个非常简单的小包，可在文件被更改时自动重启服务器
+
+如果你运行
+
+```
+cnpm install --save-dev nodemon
+```
+然后将以下脚本添加到package.json
+
+```
+//package.json
+"scripts": {
+    "dev": "nodemon ./tests/service/service.js"
+  }
+```
+
+```
+const express = require("express");
+const app = express();
+app.get("/test",(req,res) => {
+    res.send({
+        result : "hello world",
+    })
+})
+app.listen(3000,()=>{
+    console.log("server is running");
+})
+```
+
+在service文件夹下，创建router.spec.js用于测试上述接口。 注意的是router.spec.js中的测试代码和karma单元测试中的测试代码风格相同。唯一不同的是，接口测试是跑在node服务上的必须把进程done掉，不然会阻塞执行。 下面是测试代码
+
+
+```
+
+const axios = require("axios");
+describe("node接口测试",function(){
+    it("test接口测试",function(done){
+        axios.get("192.168.0.101:3000/test").then(function(response){
+            if(response.data.result == 'hello world'){
+                console.log(response)
+                //必须要done
+                done();
+            }else {
+                done(new Error("请求接口数据出错"));
+            }
+        }).catch(function(error){
+            done(error);
+        })
+    })
+})
+```
+
+
+在mochaRunner.js中编写异步测试
+
+
+```
+const Macha=require('mocha')
+const mocha = new Macha({
+    reporter: 'mochawesome',
+    reporterOptions: {
+        reportDir: './docs/mochawesome-report',
+      }
+});
+mocha.addFile('./tests/service/routes.spec.js');
+mocha.run(function(){
+    console.log(done)
+    process.exit()
+    // process.exit(1) 异常
+    // process.exit()  正常
+})
+```
+
+###生成测试报表
+
+使用mochawesome生成测试报表
+
+
+###安装mochawesome
+
+```
+npm install mochawesome –save-dev
+```
+
+在mochaRunner.js中配置
+
+```
+const mocha = new Macha({
+    reporter: 'mochawesome',
+    reporterOptions: {
+        reportDir: './docs/mochawesome-report',
+      }
+});
+```
+
+这样就可以生成测试报表。
+
+###启动测试
+
+首先开启服务器
+
+```
+
+npm run dev
+```
+
+mocha是基于node的语法，因此执行
+
+
+```
+node ./mochaRunner.js
+```
+
+###测试结果
+
+代码中会返回一个出错长度，如果出错长度为0的话就不是出错，如果出错长度不为0就是出错了。
+
+正确的测试结果
+
+![报表成功100%](https://wendaoshuai66.github.io/study/note/images/mochas.png)
+
+错误的测试结果
+
+![报表成功100%](https://wendaoshuai66.github.io/study/note/images/mochae.png)
+
+
+##UI测试
+
+
+####什么是UI走查
+
+把对应生成的页面看，看过之后比对是否还原UI图正确，还原对了就让上线，没有还原对就不让上线。 最早的UI走查就是Phantom的妹妹 [phantom-css](https://github.com/HuddleEng/PhantomCSS)
+
+###UI测试框架backstopJS
+
+```
+npm install backstopjs –save-dev
+```
+
+###初始化backstopJS项目
+
+
+```
+backstop init
+```
+
+
+初始化之后，出现了几个配置文件
+
+
+backstop.json是配置文件
+
+backstop_data是backstop的引擎
+
+ cookies.json：如果网站中需要cookie登录的话，可以在这里模拟cookie
+
+      
+casper：主要在无头浏览器中进行操作
+
+
+chromy：对chrome版本的内核的一些操作
+
+
+puppet
+
+###backstop.json配置文件
+
+设置页面分辨率，可同时设置好几个。
+
+
+```
+
+"viewports": [
+    {
+    "label": "phone",
+    "width": 375,
+    "height": 667
+    },
+    {
+    "label": "ipad",
+    "width": 1024,
+    "height": 768
+    }
+],
+```
+
+配置每一个测试用例
+
+```
+
+"scenarios": [
+    {
+    "label": "QQmap",
+    "cookiePath": "backstop_data/engine_scripts/cookies.json",//如果网站中有登录cookie，必须在这里指定cookie
+    "url": "https://map.qq.com/m/", //这里是测试的网站
+    "referenceUrl": "",
+    "readyEvent": "",
+    "readySelector": "",
+    "delay": 0,
+    "hideSelectors": [],
+    "removeSelectors": [],
+    "hoverSelector": "",
+    "clickSelector": "",
+    "postInteractionWait": 0,
+    "selectors": [],
+    "selectorExpansion": true,
+    "expect": 0,
+    "misMatchThreshold" : 0.1,
+    "requireSameDimensions": true
+    }
+],
+```
+
+由于backstopJS测试是进行的UI走查的环节，必须指定设计图，把参考文件放在”backstop_data/bitmaps_reference”文件夹下，可在backstop.json中paths下面的bitmaps_reference设置。
+
+
+注意：backstop.json中viewports中写了几个视图就要匹配几种参考图片
+
+###启动测试
+
+```
+backstop test
+```
+
+###测试结果
+
+会生成一个报表，自动打开网页，网页里会形成测试网页与设计图的匹配。查看测试结果。
+
+
+##最后的希望-集成化测试
+
+利用pachage.json串行和并行执行命令的方式集成化测试
+
+
+```	
+   //串行
+  "scripts": {
+    "unit": "karma start",
+    "e2e": "node ./tests/e2e/baidu.spec.js",
+    "dev": "nodemon ./tests/service/service.js",
+    "service": "node ./mocharun.js",
+    "ui":"backstop test",
+    "test":"npm run unit && npm run e2e && npm run service && npm run ui"
+  },
+  
+  //并行
+  "scripts": {
+    "unit": "karma start",
+    "e2e": "node ./tests/e2e/baidu.spec.js",
+    "dev": "nodemon ./tests/service/service.js",
+    "service": "node ./mocharun.js",
+    "ui":"backstop test",
+    "test":"npm run unit & npm run e2e & npm run service & npm run ui"
+  },
+  
+```
+
+由此可见 上述test方式太过繁琐，我们通过一个工具简化一下，这个工具就是 npm-run-all
+
+
+###安装npm-run-all
+
+```
+npm install npm-run-all –save-dev
+```
+
+###使用
+
+```
+
+"test": "npm-run-all  unit  e2e  ui  service",
+```
+
+上面这种方式不是并发执行 如果有，某一步出错，就会终止。可以加一个参数让它变成并发执行
+
+```
+"test": "npm-run-all --parallel   unit  e2e  ui  service",
+```
