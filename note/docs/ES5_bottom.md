@@ -97,13 +97,9 @@ var result=["1", "2", "3"].map(parseInt);
 ```
 
 
-      var names = ['Alice', 'Bob', 'Tiff', 'Bruce', 'Alice'];
-      names.reduce((pre,cur)=>{
-          if(cur in pre){
-              pre[cur]++
-          }else{
-            pre[cur]=1
-          }
+    var names = ['Alice', 'Bob', 'Tiff', 'Bruce', 'Alice'];
+    var allname=names.reduce((pre,cur)=>{
+          (cur in pre) ?pre[cur]++ :pre[cur]=1
           return pre
       },{})
 ```
