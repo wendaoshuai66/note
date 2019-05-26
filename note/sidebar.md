@@ -10,6 +10,8 @@
 1. [CSS简介及实用技巧](#docs/cssnote)      
 1. [后台语言](#README)      
 1. [Linux基础入门](#docs/Linux)
+1. [Linux补充](#docs/Linux_supplement)
+1. [Linux中配置静态网络连接](#docs/Linux_web)
 1. [Php与MySql开发入门上](#docs/php_up)
 1. [Php与MySql开发入门中](#docs/php_middle)
 1. [Php与MySql开发入门下](#docs/php_down)
