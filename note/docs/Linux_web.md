@@ -22,7 +22,7 @@ ping -c3 opensource.com
 
 运行此命令显示设备信息和ip地址等，稍后将要用到，因此记住
 
-###检查网络信息
+##检查网络信息
 
 通过 输入一下命令，可以在 /etc/sysconfig/network-scripts中找到网络信息
 
