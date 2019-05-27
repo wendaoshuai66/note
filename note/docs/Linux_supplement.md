@@ -291,6 +291,25 @@ kill 进程的名称
 
 ![w](https://wendaoshuai66.github.io/study/note/images/w.png)
 
+###last命令
+账号所有的登陆历史
+```
+last
+```
+
+显示上10条
+
+```
+last -n 10
+```
+登陆失败的
+
+```
+lastb
+```
+
+
+
 ##Linux怎么管理服务
 
 ###查看服务名
