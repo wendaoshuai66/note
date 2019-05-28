@@ -240,7 +240,267 @@ isPrime[3];
 
 戏剧性的是：纯函数就是数学上的函数，而且是函数式编程的全部。使用这些纯函数编程能够带来大量的好处，让我们来看一下为何要不遗余力地保留函数的纯粹性的原因。
 
+####追求“纯”的理由
+
+纯函数不仅可以有效降低系统的复 杂度，还有很多很棒的特性，比如 可缓存性
+
+```
+ import _ from 'lodash';
+var sin = _.memorize(x => Math.sin(x));
+//第一次计算的时候会稍慢一点 var a = sin(1);
+//第二次有了缓存，速度极快
+var b = sin(1); 
+
+```
+
+####函数式编程-幂等性
+
+执行多次所产生的影响均与一次执行的影响相同，也就是说执行一次和执行多次对系统内部的状态影响是一样的 
+
+```
+
+class Person {
+  constructor () {
+    this.name = name;
+  },
+  sayName () {
+    console.log(my name is + this.name);
+  } 
+}
+var person = new Person(zhangsan)
+person.sayName();
+person.sayName();
+
+```
+
+####纯函数和幂等性的区别
+
+1.法调用多次对内部的状态影响是一样的，则这么方法就具有幂等性，在函数式编程中，纯函数也具有幂等性，但具有幂等性的函数却不一定是纯函数。
+
+2.纯函数主要强调相同的输入，多次调用，输出也相同且无副作用，而幂等主要强调多次调用，对内部的状态的影响是一样的，调用返回值可能不同。
 
 
+####总结
+
+我们已经了解什么是纯函数了，也看到作为函数式程序员的我们，为何深信纯函数是不同凡响的。从这开始，我们将尽力以纯函数式的方式书写所有的函数。为此我们将需要一些额外的工具来达成目标，同时也尽量把非纯函数从纯函数代码中分离。
+
+如果手头没有一些工具，那么纯函数程序写起来就有点费力。我们不得不玩杂耍似的通过到处传递参数来操作数据，而且还被禁止使用状态，更别说“作用”了。没有人愿意这样自虐。所以让我们来学习一个叫 curry 的新工具。
 
 
+###函数的柯里化
+
+
+####偏应用函数
+
+在讲函数柯里化之前先讲偏应用函数（偏函数），函数柯里化主要是通过偏应用函数的实现，把接受多个参数的函数变换成接受一个单一参数的函数，并且返回接受余下的参数而且返回结果的新函数
+
+```
+const partial = (f, ...args) =>
+(...moreArgs) => f(...args, ...moreArgs)
+const add3 = (a, b, c) => a + b + c
+// 偏应用 `2` 和 `3` 到 `add3` 给你一个单参数的函数 const fivePlus = partial(add3, 2, 3)
+fivePlus(4)
+
+//bind实现 
+const add1More = add3.bind(null,2,3) // (c) => 2 + 3 + c
+      
+```
+
+总结
+
+通过上面程序了解到柯里化函数的特点是总是返回一个一元的函数：一个带有一个参数的新函数，不同的是普通函数可以根据需要一次获取尽可能多的参数
+
+####函数的柯里化
+
+#####为什么要柯里化
+
+1.柯里化在函数组合的上下文中起到关键的作用,能够让你重新组合你的应用，将复杂的功能拆分成一个个简单的部分，这样容易更改，理解
+
+2.柯里化也是一种函数预加载的方法，通过传递较少的参数得到一个在相同词法作用域当中缓存了这些参数的新函数，其实这也是一种对参数的缓存
+
+
+```
+import { curry } from 'lodash';
+var match = curry((reg, str) => str.match(reg)); var filter = curry((f, arr) => arr.filter(f));
+var haveSpace = match(/\s+/g); //haveSpace(“ffffffff”);
+//haveSpace(“a b");
+//filter(haveSpace, ["abcdefg", "Hello World"]); filter(haveSpace)(["abcdefg", "Hello World"])
+```
+
+#####柯里化函数的应用场景
+
+1.延迟计算
+
+```
+
+// 普通实现
+var sum = function(args){
+  return args.reduce(function(a,b){
+      return a+b
+  });
+};
+var result = sum([1,2,3,4,5]); // 15
+
+// 柯里化实现
+function add() {
+  var _args = [].slice.call(arguments);
+  var adder = function () {
+
+      // 利用闭包特性保存_args的值
+      var _adder = function() {
+          [].push.apply(_args, [].slice.call(arguments));
+          return _adder;
+      };
+
+      // 利用隐式转换的特性，计算最终的值返回
+      _adder.toString = function () {
+          return _args.reduce(function (a, b) {
+              return a + b;
+          });
+      }
+
+      return _adder;
+  }
+  return adder.apply(null, [].slice.call(arguments));
+}
+
+var sum = add();
+sum(1,2,3)(4);
+sum(5);
+sum() // 15
+
+优点：调用灵活，参数定义随意
+
+充分利用了柯里化提延迟执行的特点
+
+延迟执行 – 返回新函数可以进行任意调用
+```
+
+2.DOM操作中的事件绑定(动态创建函数)
+当在多次调用同一个函数，并且传递的参数绝大多数是相同的。
+
+```
+// 普通版本
+var addEvent = function(el, type, fn, capture) {
+    if (window.addEventListener) {
+      el.addEventListener(type, function(e) {
+        fn.call(el, e);
+      }, capture);
+    } else if (window.attachEvent) {
+      el.attachEvent("on" + type, function(e) {
+        fn.call(el, e);
+      });
+    } 
+ };
+
+ // 柯里化版本
+ var addEvent = (function(){
+    if (window.addEventListener) {
+      return function(el, type, fn, capture) {
+        el.addEventListener(type, function(e) {
+          fn.call(el, e);
+        }, (capture));
+      };
+    } else if (window.attachEvent) {
+      return function(el, type, fn, capture) {
+        el.attachEvent("on" + type, function(e) {
+            fn.call(el, e);
+        });
+      };
+    }
+})();
+
+优点：不用每次调用进行 if () {}else {} 判断兼容性问题
+
+充分利用了柯里化提前返回和延迟执行的特点
+提前返回 – 使用函数立即调用进行了一次兼容判断（部分求值），返回兼容的事件绑定方法
+延迟执行 – 返回新函数，在新函数调用兼容的事件方法。等待addEvent新函数调用，延迟执行
+```
+
+当然应用场景还有很多，比如我们经常提到的防抖和节流问题，充分的利用了函数式编程的延迟执行特性，将多个间隔接近的函数执行合并成一次函数执行来提高性能问题。
+关于事件节流和防抖动将会在后续的专题中单独指出
+
+#####总结
+
+curry 函数用起来非常得心应手，每天使用它对我来说简直就是一种享受。它堪称手头必备工具，能够让函数式编程不那么繁琐和沉闷。
+通过简单地传递几个参数，就能动态创建实用的新函数；而且还能带来一个额外好处，那就是保留了数学的函数定义，尽管参数不止一个。 下一章我们将学习另一个重要的工具：组合（compose）。
+
+
+###函数的组合
+
+纯函数以及如何把它柯里化写出的洋葱代码 h(g(f(x)))，为了解决函数嵌套问题，我们需要用到函数的组合
+
+```
+const compose = (f, g) => (x => f(g(x)));  var first = arr => arr[0]; 
+var reverse = arr => arr.reverse(); 
+var last = compose(first, reverse);  last([1,2,3,4,5]);
+```
+
+###Point Free
+
+把对象自带的方法转化成纯函数，不要命名转瞬即逝的中间变量。
+   
+这个函数中，我们使用了 str 作为我们的中间变量，但 这个中间变量除了让代码变得长了一点以外是毫无意义 的。
+
+``` 
+const f = str => str.toUpperCase().split(' ')
+
+```
+优缺点
+
+```
+const compose = (f, g) => (x => f(g(x)));
+
+var toUpperCase = word => word.toUpperCase(); var split = x => (str => str.split(x));
+var f = compose(split(' '), toUpperCase); 
+
+f("abcd efgh");
+```
+
+这种风格能够帮助我们减少不必要的命名，让代码保持简洁和通用。
+
+### 声明式与命令式代码
+ 
+ ```
+let CEOs = []; 
+  for(var i = 0; i < companies.length; i++) 
+CEOs.push(companies[i].CEO)  } 
+//声明式 
+let CEOs = companies.map(c => c.CEO);
+ ```
+ 
+###惰性求值、惰性函数、惰性链
+ 
+在指令式语言中以下代码会按顺序执行，由于每个函数都有可能改动或者依赖于其外部的状态，因此必须顺序执行。(大白话利用重写函数)
+
+##高阶函数
+
+函数当参数，把传入的函数做一个封装，然后返回这个封装函数，达到更高程度的抽象
+
+举个简单的例子：
+
+```
+
+function math(fn,array){
+            return fn(array[0],array[1])
+        }
+
+        var add = function(a,b){
+            return a+b
+        }
+        console.log(math(add,[1,2]))
+```
+
+###特点
+ ```
+ function math(fn,array){
+            return fn(array[0],array[1])
+        }
+
+var add = function(a,b){
+    return a+b
+}
+console.log(math(add,[1,2]))
+        
+```
+ 

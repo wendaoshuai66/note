@@ -1,4 +1,4 @@
-#ECMAScript5.1新增语法上
+#ECMAScript5.1新增语法下
 ##额外的数组
 ###Array.prototype.indexOf
 
@@ -145,4 +145,4 @@ if(!Array.prototype.reduce){
       }
 ```
 
-###0Array.prototype.reduceRight
+###Array.prototype.reduceRight
