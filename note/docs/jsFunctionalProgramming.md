@@ -301,7 +301,7 @@ const add3 = (a, b, c) => a + b + c
 // 偏应用 `2` 和 `3` 到 `add3` 给你一个单参数的函数 const fivePlus = partial(add3, 2, 3)
 fivePlus(4)
 
-//bind实现 
+//bind实现
 const add1More = add3.bind(null,2,3) // (c) => 2 + 3 + c
       
 ```
@@ -321,8 +321,13 @@ const add1More = add3.bind(null,2,3) // (c) => 2 + 3 + c
 
 ```
 import { curry } from 'lodash';
-var match = curry((reg, str) => str.match(reg)); var filter = curry((f, arr) => arr.filter(f));
+
+var match = curry((reg, str) => str.match(reg)); 
+
+var filter = curry((f, arr) => arr.filter(f));
+
 var haveSpace = match(/\s+/g); //haveSpace(“ffffffff”);
+
 //haveSpace(“a b");
 //filter(haveSpace, ["abcdefg", "Hello World"]); filter(haveSpace)(["abcdefg", "Hello World"])
 ```
@@ -431,29 +436,33 @@ curry 函数用起来非常得心应手，每天使用它对我来说简直就�
 纯函数以及如何把它柯里化写出的洋葱代码 h(g(f(x)))，为了解决函数嵌套问题，我们需要用到函数的组合
 
 ```
-const compose = (f, g) => (x => f(g(x)));  var first = arr => arr[0]; 
-var reverse = arr => arr.reverse(); 
-var last = compose(first, reverse);  last([1,2,3,4,5]);
+const compose = (f, g) => (x => f(g(x)));
+var first = arr => arr[0];
+var reverse = arr => arr.reverse();
+var last = compose(first, reverse);
+last([1,2,3,4,5]);
 ```
 
 ###Point Free
 
 把对象自带的方法转化成纯函数，不要命名转瞬即逝的中间变量。
+
    
 这个函数中，我们使用了 str 作为我们的中间变量，但 这个中间变量除了让代码变得长了一点以外是毫无意义 的。
 
-``` 
-const f = str => str.toUpperCase().split(' ')
 
 ```
+const f = str => str.toUpperCase().split(' ')
+```
+
 优缺点
 
 ```
 const compose = (f, g) => (x => f(g(x)));
 
-var toUpperCase = word => word.toUpperCase(); var split = x => (str => str.split(x));
+var toUpperCase = word => word.toUpperCase();
+var split = x => (str => str.split(x));
 var f = compose(split(' '), toUpperCase); 
-
 f("abcd efgh");
 ```
 
@@ -461,13 +470,14 @@ f("abcd efgh");
 
 ### 声明式与命令式代码
  
- ```
-let CEOs = []; 
-  for(var i = 0; i < companies.length; i++) 
-CEOs.push(companies[i].CEO)  } 
-//声明式 
+```
+let CEOs = [];
+  for(var i = 0; i < companies.length; i++){
+     CEOs.push(companies[i].CEO)
+      }
+//声明式
 let CEOs = companies.map(c => c.CEO);
- ```
+```
  
 ###惰性求值、惰性函数、惰性链
  
@@ -485,13 +495,14 @@ function math(fn,array){
             return fn(array[0],array[1])
         }
 
-        var add = function(a,b){
-            return a+b
-        }
-        console.log(math(add,[1,2]))
+var add = function(a,b){
+    return a+b
+}
+console.log(math(add,[1,2]))
 ```
 
 ###特点
+
  ```
  function math(fn,array){
             return fn(array[0],array[1])
@@ -503,4 +514,6 @@ var add = function(a,b){
 console.log(math(add,[1,2]))
         
 ```
+##尾调用优化
+ 
  
