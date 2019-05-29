@@ -1,4 +1,4 @@
-#JavaScript函数式编程
+#JavaScript函数式编程--上
 ##函数式编程思维
 
 ### 范畴论Category Theory
@@ -554,12 +554,120 @@ factorial(5)
  
  
  ES6强制使用尾递归
+ 
+ ```
+  function factorial(n,total){
+      if(n===1) return total
+      return n*factorial(n-1,total)
+  }
+  factorial(5,1)
+  //执行过程如下
+  //factorial(4,5)
+  //  factorial(3,20)
+  //  factorial(2,60)
+  //  factorial(1,120)
+  //  120
  ```
  
-  function factorial(n,total){
-    if(n===1) return total
-    return n*factorial(n-1,total)
+ ###进一步加深理解
+ 
+ 再举一个简单的例子
+ 
+```
+function sum(n){
+    if(n===1) return 1
+    return n+sum(n-1)
 }
+console.log(sum(5))
+(5 + sum(4))
+(5 + (4 + sum(3)))
+(5 + (4 + (3 + sum(2))))
+(5 + (4 + (3 + (2 + sum(1))))) (5 + (4 + (3 + (2 + 1))))
+(5 + (4 + (3 + 3)))
+(5 + (4 + 6))
+(5 + 10)
+15
+     }
+ 
+//    sum(5)
+//     (5 + sum(4))
+//     (5 + (4 + sum(3)))
+//     (5 + (4 + (3 + sum(2))))
+//     (5 + (4 + (3 + (2 + sum(1))))) (5 + (4 + (3 + (2 + 1))))
+//     (5 + (4 + (3 + 3)))
+//     (5 + (4 + 6))
+//     (5 + 10)
+//     15
  ```
+ 
+ #####死循环与爆栈不是一个意思：栈的递归是内存用完了，死循环是ui的主线程没有能力执行其他的代码了。爆栈是内存被用光了，死循环也会被内存用光，但是js是单线程的，死循环不能执行其他代码
+ 
+ 细数尾递归
+
+ ```
+ function sum(x, total) {
+    if (x === 1) {
+        return x + total; 
+    }
+    return sum(x - 1, x + total);
+}，
+    // sum(5, 0) 
+    //  sum(4, 5)
+    //  sum(3, 9) 
+    //  sum(2, 12) 
+    //  sum(1, 14) 
+    //  15
+ ```
+ 正个计算过程是线性的，调用一次sum(x, total)后，会进入下一个栈，相关的数据信息和 跟随进入，不再放在堆栈上保存。当计算完最后的值之后，直接返回到最上层的 sum(5,0)。这能有效的防止堆栈溢出。在ECMAScript 6，我们将迎来尾递归优化，通过尾递归优化，javascript代码在解释成机器 码的时候，将会向while看起，也就是说，同时拥有数学表达能力和while的效能。
+ 
+ ###接下了来先搞清一个概念
+ 1.浏览器并没有实现尾递归，开启须强制
+ 
+ ```
+function foo(n) { 
+    return bar(n*2);
+    }
+function bar() {
+//查看调用帧
+console.trace(); 
+}
+foo(1);
+  
+ ```
+ ![爆栈](https://wendaoshuai66.github.io/study/note/images/chankanbaozhan.png)
+ 上述代码的目标只有一个执行栈
+ ```
+ //强制指定，只留下bar
+ return continue
+ !return
+ #function()
+ ```
+
+ 2.【最后一步】是否调用自身，而不是是否在【最后一行】调用自身
+ 
+ 3.最后一行调用其他函数，并返回叫尾调用
+ 
+ ```
+ function init(){
+   test(i)
+ }
+ function test(i){
+ init(i-1)
+ }
+ ```
+ 
+ 4.尾递归有两种一种浏览器实现的，一种自己写的
+ 
+ 5.能用while解决的都用while，因为while是线性的
+ 
+ ##闭包
+ 
+ 大白话理解：拿到你不应该拿到的东西，为什么这么说，本来这个东西不是你的但是在函数的私有的内部，但想取到，就用到了闭包。
+ 
+ 小黄书的说法：保留了当前的函数执行的词法作用域，把词法作用域拿出去
+ 
+ 红皮书的书法：有权访问其他函数内部变量的的函数
+ 
+ 
  
  

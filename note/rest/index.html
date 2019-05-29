@@ -356,6 +356,8 @@
         //     if(n===1) return 1
         //     return n*factorial(n-1)
         // }
+        // console.log(factorial(1000000))
+       
         //执行过程如下
 
         // 5*factorial(4)
@@ -368,13 +370,41 @@
         // 5**24
         // console.log(factorial(1000000))
         //ES6强制使用尾递归
-        function factorial(n,total){
-            if(n===1) return total
-            return n*factorial(n-1,total)
-        }
-         //执行过程如下
+        // function sum(n){
+        //     if(n===1) return 1
+        //     return n+sum(n-1)
+        // }
+        // console.log(sum(5))
+       // 执行过程如下
+    //    sum(5)
+    //     (5 + sum(4))
+    //     (5 + (4 + sum(3)))
+    //     (5 + (4 + (3 + sum(2))))
+    //     (5 + (4 + (3 + (2 + sum(1))))) (5 + (4 + (3 + (2 + 1))))
+    //     (5 + (4 + (3 + 3)))
+    //     (5 + (4 + 6))
+    //     (5 + 10)
+    //     15
 
-        console.log(factorial(10,1))
+    // function sum(x, total) {
+    //     if (x === 1) {
+    //         return x + total; 
+    //     }
+    //     return sum(x - 1, x + total);
+    // }
+
+        // sum(5, 0) 
+        //  sum(4, 5)
+        //  sum(3, 9) 
+        //  sum(2, 12) 
+        //  sum(1, 14) 
+        //  15
+        // function fn(n,total){
+        //     if(n===1) return total
+        //     return fn(n-1,total*n)
+        // }
+        // fn(100)
+ 
         </script>
 </body>
 </html>
