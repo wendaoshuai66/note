@@ -503,7 +503,7 @@ console.log(math(add,[1,2]))
 
 ###特点
 
- ```
+```
  function math(fn,array){
             return fn(array[0],array[1])
         }
@@ -511,9 +511,55 @@ console.log(math(add,[1,2]))
 var add = function(a,b){
     return a+b
 }
-console.log(math(add,[1,2]))
-        
+console.log(math(add,[1,2])) 
+      
 ```
+
 ##尾调用优化
+
+指函数内部的最后一个动作是函数调用。该调用的返回值，直接返回给函数。函数调用自身，称为递归。
+
+如果尾调用自身，就称为尾递归。递归需要保存大量的调用记录，很容易发生栈溢出错误，如果使用尾递归优化，将递归变为循环，那么只需要保存一个调用记录，这样就不会发生栈溢出错误了。
+
+例如：
+
+```
+ //斐波那契数列
+function factorial(n){
+    if(n===1) return 1
+    return n*factorial(n-1)
+}
+//执行过程如下
+
+// 5*factorial(4)
+//  4*factorial(3)
+//   3*factorial(2)
+//    2*factorial(1)
+//    2*1
+//   3*2
+//  4*6
+// 5**24
+factorial(5)
+
+```
+
+ 如果console.log(factorial(1000000))会出现，浏览器超过了最大调用堆栈大小，如图：
+ 
+ 
+ ![爆栈](https://wendaoshuai66.github.io/study/note/images/zhan.png)
+ 
+ 
+ 
+普通递归时，内存需要记录调用的堆栈所出的深度和位置信息。在最底层计算返回值，再根据记录的信息，跳回上一层级计算，然后再跳回更高一层，依次运行，直到最外层的调用函数。在cpu计算和内存会消耗多，而且当深度过大时，会出现堆栈溢出。
+ 
+ 
+ ES6强制使用尾递归
+ ```
+ 
+  function factorial(n,total){
+    if(n===1) return total
+    return n*factorial(n-1,total)
+}
+ ```
  
  
