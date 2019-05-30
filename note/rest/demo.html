@@ -8,13 +8,32 @@
 </head>
 <body>
     <script>
-    function a(){
-        a=1
-        console.log(a)
+    // //Container就是容器
+    //   function Container(x){
+    //       this._val = x
+    //   }
+    //   Container.of=x=>new Container(x);
+    //   //函子的标志就是容器里有一个map方法，将容器里的每一个值映射到另一个容器中
+    //   Container.prototype.map =function(f){
+    //       return  Container.of(f(this._val))
+    //   }
+    //   var container=Container.of(3).map(x=>x+1)
+    //   console.log(container._val)//4
+
+
+    class Functor{
+        constructor(x){
+            this._val = x
+        }
+        map(f){
+            return new Functor(f(this._val))
+        }
     }
-  
-    a()
-    console.log(a)
+    Functor.of=x=>new Functor(x)
+    var container=(new Functor(3)).map(x=>x+1)
+    var toUpperCase =(word)=>word.toUpperCase()
+    var container1 = Functor.of('abc').map(toUpperCase)
+    console.log(container1)
     </script>
 </body>
 </html>

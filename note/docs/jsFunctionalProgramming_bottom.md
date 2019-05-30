@@ -32,7 +32,50 @@
 废话不多说，上代码：
 
 ```
+//Container就是容器
+function Container(x){
+  this._val = x
+}
+Container.of=x=>new Container(x);
+//函子的标志就是容器里有一个map方法，将容器里的每一个值映射到另一个容器中
+Container.prototype.map =function(f){
+  return  Container.of(f(this._val))
+}
+var container=Container.of(3).map(x=>x+1)
+console.log(container._val)//4
 ```
+
+es6写法
+
+
+```
+
+class Functor{
+    constructor(x){
+        this._val = x
+    }
+    map(f){
+        return new Functor(f(this._val))
+    }
+}
+Functor.of=x=>new Functor(x)
+var container=(new Functor(3)).map(x=>x+1)
+var toUpperCase =(word)=>word.toUpperCase()
+var container1 = Functor.of('abc').map(toUpperCase)
+console.log(container1)
+```
+
+####map
+
+上面代码中，Functor是一个函子，它的map方法接受函数f作为 参数，然后返回一个新的函子，里面包含的值是被f处理过的 (f(this.val))。 一般约定，函子的标志就是容器具有map方法。该方法将容器里 面的每一个值，映射到另一个容器。 上面的例子说明，函数式编程里面的运算，都是通过函子完 成，即运算不直接针对值，而是针对这个值的容器----函子。函 子本身具有对外接口(map方法)，各种函数就是运算符，通过 接口接入容器，引发容器里面的值的变形。 因此，学习函数式编程，实际上就是学习函子的各种运算。由 于可以把运算方法封装在函子里面，所以又衍生出各种不同类型的函子，有多少种运算，就有多少种函子。函数式编程就变 成了运用不同的函子，解决实际问题。
+
+####of
+
+你可能注意到了，上面生成新的函子的时候，用了 new命令。这实在太不像函数式编程了，因为new命令是 面向对象编程的标志。 函数式编程一般约定，函子有一个of方法，用来生成新 的容器。
+
+
+
+
 
 
 
