@@ -73,9 +73,261 @@ console.log(container1)
 
 你可能注意到了，上面生成新的函子的时候，用了 new命令。这实在太不像函数式编程了，因为new命令是 面向对象编程的标志。 函数式编程一般约定，函子有一个of方法，用来生成新 的容器。
 
+##MayBe函子
+
+函子接受各种函数，处理容器内部的值。这里就有一个问题，容器内部的值可能是一个空值（比如null），而外部函数未必有处理空值的机制，如果传入空值，很可能就会出错。
+
+```
+
+Functor.of(null).map(s=> s.toUpperCase());
+// TypeError
+```
 
 
+上面代码中，函子里面的值是null，结果小写变成大写的时候就出错了。
+
+Maybe 函子就是为了解决这一类问题而设计的。简单说，它的map方法里面设置了空值检查。
+
+```
+class Maybe extends Functor{
+        map(f){
+            return this._val ? Maybe.of(f(this._val)) :Maybe.of(null)
+        }
+    }
+```
+
+有了 Maybe 函子，处理空值就不会出错了。
+
+```
+Maybe.of(null).map(s=> s.toUpperCase());
+// Maybe(null)
+```
+
+##Either 函子
+
+我们的容器能做的事情太少了，try/catch/throw 并不是 “纯”的，因为它从外部接管了我们的函数，并且在这个 函数出错时抛弃了它的返回值。
+
+Promise 是可以调用 catch 来集中处理错误的。
+
+事实上 Either 并不只是用来做错误处理的，它表示了逻辑或，范畴学里的 coproduc。
 
 
+条件运算if...else是最常见的运算之一，函数式编程里面，使用 Either 函子表达。
+
+Either 函子内部有两个值：左值（Left）和右值（Right）。右值是正常情况下使用的值，左值是右值不存在时使用的默认值。
+
+```
+class Either extends Functor {
+  constructor(left, right) {
+    this.left = left;
+    this.right = right;
+  }
+
+  map(f) {
+    return this.right ? 
+      Either.of(this.left, f(this.right)) :
+      Either.of(f(this.left), this.right);
+  }
+}
+
+Either.of = function (left, right) {
+  return new Either(left, right);
+};
+```
+
+下面是用法。
+
+```
+var addOne = function (x) {
+  return x + 1;
+};
+
+Either.of(5, 6).map(addOne);
+// Either(5, 7);
+
+Either.of(1, null).map(addOne);
+// Either(2, null);
+
+```
+
+上面代码中，如果右值有值，就使用右值，否则使用左值。通过这种方式，Either 函子表达了条件运算。
+
+Either 函子的常见用途是提供默认值。下面是一个例子。
+
+```
+
+Either
+.of({address: 'xxx'}, currentUser.address)
+.map(updateField);
+
+```
+上面代码中，如果用户没有提供地址，Either 函子就会使用左值的默认地址。
+
+```
+var Left = function(x) { 
+   this.__value = x;
+}
+var Right = function(x) {
+   this.__value = x; 
+ }
+Left.of = function(x) { 
+   return new Left(x);
+}
+
+Right.of = function(x) { 
+   return new Right(x);
+}
+
+```
+```
+// 这里不同!!! 
+Left.prototype.map = function(f) {
+    return this; 
+
+}
 
 
+Right.prototype.map = function(f) {
+
+   return Right.of(f(this.__value)); 
+
+}
+```
+
+
+Left 和 Right 唯一的区别就在于 map 方法的实 现，Right.map 的行为和我们之前提到的 map 函数一样。但是 Left.map 
+就很不同了:它不会对容器做任何事情，只是很简单地把这个容器拿进来又扔出 去。这个特性意味着，Left 可以用来传递一个错误 消息。
+
+
+错误处理 Either 例如：
+
+```
+
+var getAge = user => user.age ? Right.of(user.age) : Left.of("ERROR!");
+var k=getAge({name: 'stark', age: '21'}).map(age => 'Age is ' + age); 
+//=> Right('Age is 21')
+
+var s=getAge({name: 'stark'}).map(age => 'Age is ' + age); //=> Left('ERROR!')
+  
+```
+
+
+Left 可以让调用链中任意一环的错误立刻返回到调用链的尾 部，这给我们错误处理带来了很大的方便，再也不用一层又一 层的 try/catch。
+
+##Ap函子
+
+函子里面包含的值，完全可能是函数。我们可以想象这样一种情况，一个函子的值是数值，另一个函子的值是函数。
+
+
+```
+class Ap extends Functor {
+  ap(F) {
+    return Ap.of(this.val(F.val));
+  }
+}
+
+
+function addTwo(x) {
+         return x + 2;
+        }
+        
+Ap.of(addTwo).ap(Functor.of(2))// Ap(4)    
+```
+
+##Monad 函子
+
+Monad 函子的作用是，总是返回一个单层的函子。它有一个flatMap方法，与map方法作用相同，唯一的区别是如果生成了一个嵌套函子，它会取出后者内部的值，保证返回的永远是一个单层的容器，不会出现嵌套的情况
+
+```
+class Monad extends Functor {
+  join() {
+    return this.val;
+  }
+  flatMap(f) {
+    return this.map(f).join();
+  }
+}
+
+```
+
+•1.Monad就是一种设计模式，表示将一个运算过程，通过 函数拆解成互相连接的多个步骤。你只要提供下一步运算 所需的函数，整个运算就会自动进行下去。
+
+•2.Promise 就是一种 Monad。
+
+•3.Monad 让我们避开了嵌套地狱，可以轻松地进行深度嵌的函数式编程，比如IO和其他异步任务
+•4.记得让上面的IO集成Monad
+##IO 函子
+
+ •1.真正的程序总要去接触肮脏的世界。
+ 
+ ```
+  function readLocalStorage(){ 
+    return window.localStorage;
+      }
+ ``` 
+
+.2.IO 跟前面那几个 Functor 不同的地方在于，它的 __value 是一个函数。 它把不纯的操作(比如 IO、网络请求、DOM)包裹到一个函数内，从而延迟这个操作的执行。所以我们认为，IO 包含的是被包裹的操作的返回值。
+
+.3.IO其实也算是惰性求值。
+
+.4. IO负责了调用链积累了很多很多不纯的操作，带来的复杂性和不可维护性
+
+废话不多说来段代码理解
+
+```
+import _ from 'lodash'; 
+var compose = _.flowRight;
+var IO = function(f) {
+    this.__value = f; 
+}
+IO.of = x => new IO(_ => x);
+IO.prototype.map = function(f) {
+    return new IO(compose(f, this.__value)) 
+};
+```
+  es6写法
+  
+```
+import _ from 'lodash'; 
+var compose = _.flowRight;
+class IO extends Monad{ 
+    map(f){
+    return IO.of(compose(f, this.__value)) 
+   }
+}
+```
+##当下函数式编程最热的库
+
+1、RxJS
+frp => angular
+
+2、cycleJS
+
+3、lodashJS、lazy(惰性求值)
+
+4、underscoreJS
+
+5、ramdajs
+
+##函数式编程的实际应用场景
+
+###易调试、热部署、并发
+
+1.函数式编程中的每个符号都是 const 的，于是没有什么函数会有副作用。 谁也不能在运行时修改任何东西，也没有函数可以修改在它的作用域之外修 改什么值给其他函数继续使用。这意味着决定函数执行结果的唯一因素就是 它的返回值，而影响其返回值的唯一因素就是它的参数。
+
+2.函数式编程不需要考虑”死锁"(deadlock)，因为它不修改变量，所以根本 不存在"锁"线程的问题。不必担心一个线程的数据，被另一个线程修改，所 以可以很放心地把工作分摊到多个线程，部署"并发编程"(concurrency)。
+
+3.函数式编程中所有状态就是传给函数的参数，而参数都是储存在栈上的。 这一特性让软件的热部署变得十分简单。只要比较一下正在运行的代码以及 新的代码获得一个diff，然后用这个diff更新现有的代码，新代码的热部署就 完成了。
+
+###单元测试
+
+严格函数式编程的每一个符号都是对直接量或者表达式结果的引用， 没有函数产生副作用。因为从未在某个地方修改过值，也没有函数修 改过在其作用域之外的量并被其他函数使用(如类成员或全局变量)。 这意味着函数求值的结果只是其返回值，而惟一影响其返回值的就是 函数的参数。
+
+这是单元测试者的梦中仙境(wet dream)。对被测试程序中的每个函数， 你只需在意其参数，而不必考虑函数调用顺序，不用谨慎地设置外部 状态。所有要做的就是传递代表了边际情况的参数。如果程序中的每 个函数都通过了单元测试，你就对这个软件的质量有了相当的自信。 而命令式编程就不能这样乐观了，在 Java 或 C++ 中只检查函数的返 回值还不够——我们还必须验证这个函数可能修改了的外部状态。
+
+###总结与补充
+
+函数式编程不应被视为灵丹妙药。相反，它应 该被视为我们现有工具箱的一个很自然的补充 —— 它带来了更高的可组合性，灵活性以及容错 性。现代的JavaScript库已经开始尝试拥抱函数式编 程的概念以获取这些优势。Redux 作为一种 FLUX 的变种实现，核心理念也是状态机和函数式编程。
+
+软件工程上讲『没有银弹』，函数式编程同样也不是万能的，它与烂大街的 OOP 一样，只是一种编程范式而已。很多实际应用中是很难用函数式去表达的，选择 OOP 亦或是其它编程范式或许会更简单。但我们要注意到函数式编程的核心理念， 如果说 OOP 降低复杂度是靠良好的封装、继承、多态以及接口定义的话，那么函 数式编程就是通过纯函数以及它们的组合、柯里化、Functor 等技术来降低系统复 杂度，而 React、Rxjs、Cycle.js 正是这种理念的代言。让我们一起拥抱函数式编程， 打开你程序的大门!
+  

@@ -1,9 +1,0 @@
-https://www.kancloud.cn/jsfront/month/962964 前端知识月刊 git地址 https://github.com/jsfront/month
-前端面试总结：http://codehtml.cn/front-end-interview-js/#/important/im-2
-博客园：https://www.cnblogs.com
-https://yanhaijing.com/ 优秀前端总结
-https://github.com/MarsPen/-notes-summary 总结
-
-js总结感觉好的：https://github.com/MarsPen/-notes-summary/blob/master/javascript/index.md
-你不知道JavaScript优秀笔记   https://www.cnblogs.com/lwl0812/p/9779323.html
-https://wendaoshuai66.github.io/unknownJs/note/images/compile.png

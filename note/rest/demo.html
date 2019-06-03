@@ -21,19 +21,125 @@
     //   console.log(container._val)//4
 
 
+    // class Functor{
+    //     constructor(x){
+    //         this._val = x
+    //     }
+    //     map(f){
+    //         return new Functor(f(this._val))
+    //     }
+    // }
+    // Functor.of=x=>new Functor(x)
+    // var container=(new Functor(3)).map(x=>x+1)
+    // var toUpperCase =(word)=>word.toUpperCase()
+    // var container1 = Functor.of('abc').map(toUpperCase)
+    // console.log(container1)
+
+
+    // let a = function*(){
+    //     yield '🍔'
+    //     yield '🍌'
+    // }
+    // var ss =a()
+    // console.log(ss.next())
+    // console.log(ss.next())
+    // console.log(ss.next())
+    // var arr = ['🍎','🍊','🍔']
+    // for(let v of arr){
+    //     console.log(v)
+    // }
     class Functor{
         constructor(x){
-            this._val = x
+            this.val = x;
         }
         map(f){
-            return new Functor(f(this._val))
+            return new Functor(f(this.val))
         }
     }
-    Functor.of=x=>new Functor(x)
-    var container=(new Functor(3)).map(x=>x+1)
-    var toUpperCase =(word)=>word.toUpperCase()
-    var container1 = Functor.of('abc').map(toUpperCase)
-    console.log(container1)
+    Functor.of=x=> new Functor(x)
+    // var functor = Functor.of(null).map(x=>x.toUpperCase())
+    // console.log(functor)
+    // class Maybe extends Functor{
+    //     map(f){
+    //         return this._val ? Maybe.of(f(this.val)) :Maybe.of(null)
+    //     }
+    // }
+    // Maybe.of=x=>new Functor(x)
+    // console.log(Maybe.of(null).map(x=>x))
+    // var functor=Maybe.of(null).map(s=>s.toUpperCase())
+
+    // class Either extends Functor{
+    //     constructor(left,right){
+    //         super();
+    //         this.left=left;
+    //         this.right=right;
+    //     }
+    //     map(f){
+    //         return this.right?Either.of(this.left,f(this.right)):Either.of(f(this.left),this.right)
+    //     }
+    // }
+    // Either.of=(left,right)=>new Either(left,right)
+    // class Either extends Functor {
+    //     constructor(left, right) {
+    //         this.left = left;
+    //         this.right = right;
+    //     }
+
+    //     map(f) {
+    //             return this.right ? 
+    //             Either.of(this.left, f(this.right)) :
+    //             Either.of(f(this.left), this.right);
+    //         }
+    // }
+
+    // Either.of = function (left, right) {
+    // return new Either(left, right);
+    // };
+
+    // // var add =x=>x+1
+    // // var either=Either.of(5,6).map(add)
+    // // console.log(either)
+
+    // var addOne = function (x) {
+    // return x + 1;
+    // };
+
+    // Either.of(5, 6).map(addOne);
+    // console.log(Either)
+
+
+    // var Left = function(val){
+    //     this.val = val
+    // }
+    // var Right = function(val){
+    //     this.val = val
+    // }
+    // Left.of = x=>new Left(x)
+    // Right.of = x=>new Right(x)
+
+
+    // Left.prototype.map = function(f){
+    //     return this
+    // }
+    // Right.prototype.map = function(f){
+    //     return Right.of(f(this.val))
+    // }
+    // var getAge = user => user.age ? Right.of(user.age) : Left.of("ERROR!");
+    // var k=getAge({name: 'stark', age: '21'}).map(age => 'Age is ' + age); //=> Right('Age is 21')
+
+    // var s=getAge({name: 'stark'}).map(age => 'Age is ' + age); //=> Left('ERROR!')
+    function addTwo(x) {
+         return x + 2;
+        }
+    
+        class Ap extends Functor {
+            ap(F) {
+                return Ap.of(this.val(F.val));
+            }
+        }
+        Ap.of =x=>new Ap(x);
+     var ap1=Ap.of(addTwo).ap(Functor.of(2))
+    console.log(ap1)
     </script>
 </body>
 </html>
