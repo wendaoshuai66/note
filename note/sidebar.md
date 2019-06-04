@@ -24,4 +24,4 @@
 1. [JavaScript集成化测试](#docs/tegratedTesting)
 1. [JavaScript函数式编程--上](#docs/jsFunctionalProgramming)
 1. [JavaScript函数式编程--下](#docs/jsFunctionalProgramming_bottom)
-1. [Promise](#docs/http协议)
+1. [http协议](#docs/http协议)
