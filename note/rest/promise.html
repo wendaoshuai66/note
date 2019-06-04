@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+   <script>
+    //    function add(getX,getY,cb){
+    //        var x,y;
+    //        getX(function(val){
+    //            x= val;
+    //            // 两者都准备好了？
+    //            if(y!=undefined){
+    //              cb(x+y) // 发送加法的结果
+    //            }
+    //        })
+    //        getY(function(val){
+    //            y= val;
+    //            // 两者都准备好了？
+    //            if(x!=undefined){
+    //              cb(x+y) // 发送加法的结果
+    //            }
+    //        })
+    //    }
+    //    var fetchX =function(fn){
+    //        setTimeout(function(){
+    //            fn(1)
+    //        },1000)
+    //    }
+    //    var fetchY =function(fn){
+    //        setTimeout(function(){
+    //            fn(3)
+    //        },2000)
+    //    }
+    //    add(fetchX,fetchY,function(sum){
+    //        console.log(sum)//4
+    //    })
+
+    function add (xPromise,yPromise){
+        return Promise.all([xPromise,yPromise])
+        .then(values=>{
+            return values[0]+values[1]
+        })
+    }
+
+       var fetchX =function(){
+           return new Promise((reslove,reject)=>{
+                setTimeout(function(){
+                    reslove(1)
+                },1000)
+           })
+       }
+       var fetchY =function(){
+          return new Promise((reslove,reject)=>{
+                setTimeout(function(){
+                    reject('err')
+                },2000)
+           })
+       }
+    add(fetchX(),fetchY()).then(
+        sum=>{
+        console.log(sum)
+       },
+       err=>console.log(err)
+    )
+
+   </script> 
+</body>
+</html>
