@@ -407,11 +407,171 @@ session就是一个小数据库，记录这给客户端的编号，它的身份�
 session永远是存在服务器端的。session中的sessionID服务器维护，服务器根据session判断用户。
 
 
-![session](https://wendaoshuai66.github.io/study/note/images/cookie.png)
+![session](https://wendaoshuai66.github.io/study/note/images/session.png)
 
 ###session与cookie的区别和特点
 
 cookie是浏览器这边的一个小数据库，session是服务器这边的一个小数据库
 
 cookie是临时的，session也是临时的。
+
+##HTTP 缓存机制
+
+缓存会根据请求保存输出内容的副本，例如：html页面，图片，文件，当下一个请求来到的时候：如果是相同的URL，缓存直接使用副本响应访问请求。而不是向源服务器再次发送请求。
+
+
+![session](https://wendaoshuai66.github.io/study/note/images/catch.png)
+
+###缓存的优点
+
+1.减少相应延迟
+
+2.减少网络带宽消耗
+
+
+###缓存策略
+
+
+Etag/If-None-Match策略
+
+
+Last-Modified/If-Modofoed-Since策略
+
+
+
+###两种缓存机制
+
+
+1.强制缓存：服务器通知浏览器一个缓存时间，在缓存时间内，下次请求，直接用缓存；不在时间内，执行比较缓存策略。
+
+
+2.比较缓存：将缓存信息中的Etag和Last-Modified通过请求发送给服务器，由服务器校验，返回304状态码时，浏览器直接使用缓存。
+
+###缓存机制
+
+
+![暂无图片](https://wendaoshuai66.github.io/study/note/images/catchJ.png)
+
+
+##HTTPS协议分析
+
+###HTTPS使用不对称加密法
+
+对称加密法：加密和解密的可逆的。同样的方法加密可以用同样的方法解密
+
+不对称加密法：加密和解密不是可逆的，加密是一种手段，解密是另外一种手段。基于数论的，对素数的一种性质进行运算。
+
+
+
+#####HTTPS协议的安全性由SSL协议实现,当前使用的TLS协议1.2版本包含了四个核心子协议: 握手协议、密钥配置切换协议、应用数据协议及报警协议。
+
+每个加密协议都需要数字证书这样的文件。
+
+```
+
+数字证书:数字证书是互联网通信中标识双方身份信息的数字文件,由CA签发。
+
+CA:CA(certification authority)是数字证书的签发机构。作为权威机构,其审核申请者身份后签发数字证书,这样我们只需要校验数字证书即可确定对方的真 实身份
+```
+
+
+###HTTPS协议、SSL协议、TLS协议、握手协议的关系
+
+HTTPS是Hypertext Transfer Protocol over Secure Socket Layer的缩写,即HTTP over SSL,可理解为基于SSL的HTTP协议。HTTPS协议安全是由SSL协议实现的。
+
+SSL协议是一种记录协议,扩展性良好,可以很方便的添加子协议,而握手协议便是SSL协议的一个子协议。
+
+TLS协议是SSL协议的后续版本,本文中涉及的SSL协议默认是TLS协议1.2版本
+
+
+##HTTP2协议分析
+
+
+###HTTP2协议的特点
+
+使用二进制格式传输,更高效、更紧凑
+
+对报头压缩,降低开销。
+
+多路复用,一个网络连接实现并行请求
+
+服务器主动推送,减少请求的延迟
+
+默认使用加密
+
+![暂无图片](https://wendaoshuai66.github.io/study/note/images/http2X.png)
+
+
+###HTTP2的伪头字段
+
+
+伪头部字段是http2内置的几个特殊的以”:”开始的key,用于替代HTTP/1.x中请求行/响应行中的信息,比如请求方法,响应状态码等
+
+
+
+
+:method 目标URL模式部分(请求)
+:scheme 目标URL模式部分(请求)
+:authority 目标RUL认证部分(请求)
+:path 目标URL的路径和查询部分(绝对路径产生式和一个跟着”?”字符的查询产生式)。(请求)
+:status 响应头中的HTTP状态码部分(响应)
+
+
+###如何分辨HTTP1.1还是HTTP2
+
+
+第一种是看请求头里面有没有：这样的请求字段
+
+
+第二种是看请求里面有没有明确的标识协议的类型。
+
+##了解HTTP 3
+
+1.HTTP-over-QUIC被更名为HTTP 3
+
+2.QUIC协议是什么
+
+基于UDP(被改造的UDP)
+
+3.HTTP 3与HTTP 1.1和HTTP 2没有直接的关系
+4.HTTP 3不是http2的扩展
+5.HTTP 3将会是一个全新的WEB协议
+6.HTTP 3目前处于制订和测试阶段
+
+
+##HTTP 与反向代理
+
+
+正向代理：局域网内通过代理服务器去访问局域网外的东西这就叫正向代理。
+
+反向代理：互联网外的客户端通过代理服务器访问内网的服务器叫做反向代理。
+
+反向代理就像一个公司看大门的老大爷，当我们去这家公司去找人的时候，首先经过的就是大门。我们向大爷说找谁，大爷给我们传信说：xxx有人找。这就达到了反向代理的作用。 
+
+
+
+![暂无图片](https://wendaoshuai66.github.io/study/note/images/http-daili.png)
+
+###反向代理的用途
+
+![暂无图片](https://wendaoshuai66.github.io/study/note/images/http-fan-yong.png)
+
+###反向代理做负载均衡
+
+![暂无图片](https://wendaoshuai66.github.io/study/note/images/fuzai.png)
+
+###Nginx反向代理和负载均衡总结
+
+####Nginx
+nginx是一款HTTP服务器和代理服务器。Nginx功能丰富，除了上面的功能之外还可以支持FastCGI、SSL、Virtual Host 、 URL Rewrite 、 Gzip等功能。并且支持很多第三方模块扩展。
+
+####Web缓存
+Nginx 可以对不同的文件做不同的缓存处理，配置灵活，并且支持FastCGI_Cache，主要用于对Fast CGI的动态程序进行缓存。配合着第三方的ngx_cache_purge，对指定的URL缓存内容可以进行增删管理。
+
+####Nginx配置
+
+Nginx配置请看[文档](https://wendaoshuai66.github.io/study/note/rest/nginx配置学习资料.pdf)
+
+
+
 
