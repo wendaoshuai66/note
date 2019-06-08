@@ -39,34 +39,34 @@
     //        console.log(sum)//4
     //    })
 
-    function add (xPromise,yPromise){
-        return Promise.all([xPromise,yPromise])
-        .then(values=>{
-            return values[0]+values[1]
-        })
-    }
-
-       var fetchX =function(){
-           return new Promise((reslove,reject)=>{
-                setTimeout(function(){
-                    reslove(1)
-                },1000)
-           })
-       }
-       var fetchY =function(){
-          return new Promise((reslove,reject)=>{
-                setTimeout(function(){
-                    reject('err')
-                },2000)
-           })
-       }
-    add(fetchX(),fetchY()).then(
-        sum=>{
-        console.log(sum)
-       },
-       err=>console.log(err)
-    )
-
+    // function add (xPromise,yPromise){
+    //     return Promise.all([xPromise,yPromise])
+    //     .then(values=>{
+    //         return values[0]+values[1]
+    //     })
+    // }
+    //
+    //    var fetchX =function(){
+    //        return new Promise((reslove,reject)=>{
+    //             setTimeout(function(){
+    //                 reslove(1)
+    //             },1000)
+    //        })
+    //    }
+    //    var fetchY =function(){
+    //       return new Promise((reslove,reject)=>{
+    //             setTimeout(function(){
+    //                 reject('err')
+    //             },2000)
+    //        })
+    //    }
+    // add(fetchX(),fetchY()).then(
+    //     sum=>{
+    //     console.log(sum)
+    //    },
+    //    err=>console.log(err)
+    // )
+       //一个独立的Promise作为一个 未来值 动作但还有另外一种方式考虑Promise的解析：在一个异步任务的两个或以上步骤中，作为一种流程控制机制——俗称“这个然后那个”。
    </script> 
 </body>
 </html>
