@@ -553,7 +553,422 @@ http.createServer((req,res) => {
         res.end(util.inspect(post));
     })
 ```
+##Node.js全局方法和工具函数
 
+###全局对象global
+
+JavaScript 中有一个特殊的对象，称为全局对象（Global Object），它及其所有属性都可以在程序的任何地方访问，即全局变量。
+
+在浏览器 JavaScript 中，通常 window 是全局对象， 而 Node.js 中的全局对象是 global，所有全局变量（除了 global 本身以外）都是 global 对象的属性。
+
+#####永远使用声明变量以避免引入全局变量，因为全局变量会污染 命令空间，提高代码的耦合风险。
+
+###__filename
+
+__filename表示当前正在执行的脚本的文件名，它将输出文件所在位置的绝对路径，且和命令行参数所指的文件名不一定相同.如果在模块中，返回的值是模块的路径。
+```
+console.log(__filename)
+```
+
+###__dirname
+
+__dirname 表示当前执行脚本所在的目录。
+
+```
+// 输出全局变量 __dirname 的值
+console.log( __dirname );
+```
+
+###setTimeout(cb,ms)
+
+和浏览器中执行的js代码的setTimeout相同，在指定的毫秒后执行指定函数cb，setTimeout()只执行一次指定函数。返回一个定时器对象。
+
+```
+const timer = setTimeout(()=> {
+    console.log('time');
+},2000)
+console.log(timer);
+```
+
+###clearTimeout()
+
+clearTimeout(e) 全局函数用于停止一个之前通过setTimeout创建的定时器，参数t是通过setTimeoit函数创建的定时器对象。
+
+```
+const timer = setTimeout(()=> {
+    console.log('timer');
+},2000)
+clearTimeout(timer);
+```
+
+
+###setInterval(cb,ms)
+
+setInterval(cb,ms)全局函数在指定的毫秒数后执行指定函数(cb),返回一个定时器对象，可以使用clearInterval函数清楚定时器，setInterval方法会不停的调用函数，直到clearInterval被调用或窗口被关闭。
+
+```
+setInterval(()=>{
+    console.log('hello');
+},1000);
+```
+###console方法
+
+
+![console方法](https://wendaoshuai66.github.io/study/note/images/console.png)
+
+###process
+
+process 是一个全局变量，即 global 对象的属性。
+
+它用于描述当前Node.js 进程状态的对象，提供了一个与操作系统的简单接口。通常在你写本地命令行程序的时候，少不了要 和它打交道。
+
+###常用工具
+
+
+util是一个Nodejs核心模块，提供常用函数的集合，用于弥补核心JavaScript的功能，过于精简的不足。
+
+####引入util
+
+```
+const util = require('util');
+```
+
+####util.inherits
+
+util.inherits(constructor,superContructor)是一个实现对象间原型继承的函数。
+
+```
+function Car(){
+    this.name = 'wang';
+}
+function Curze(){
+    this.type = 'curze';
+}
+util.inherits(Curze,Car);
+const curze = new Curze();
+console.log(curze.__proto__.__proto__);     //Car
+```
+
+####util.inspect
+
+
+util.inspect(object,[showHidden],[depth],[colors])是一个将任意对象转化程字符串的方法，通常用于调试和错误输出。它至少接收一个参数object，即要转换的对象。
+
+showHidden是一个可选参数，如果值为true，将会输出更多的隐藏信息。
+ 
+depth表示最大递归层数，如果对象很复杂，你可以指定层数以控制输出信息的多少。如果不指定depth，   默认会递归两层，指定为null表示不限递归赠书完整遍历对象。
+ 
+如果color值为true，输出格式将会一ANSI颜色编码，通常用于在终端显示更漂亮的效果。
+ 
+ 
+#####特别要指出的是，util.inspect并不会简单的直接把对象转换为字符串，即使对象定义了toString方法也不会调用。
+
+####util.isArray(object)
+
+如果给定的参数object是一个数组返回true，否则返回false
+
+```
+console.log(util.isArray([]));      //true
+```
+
+####util.isRegExp(object)
+
+如果给定的参数object是一个正则表达式返回true，否则返回false
+
+```
+console.log(util.isRegExp(/[]/g));  //true
+```
+
+####util.isDate(object)
+
+如果给定的参数object是一个日期返回true，否则返回false
+
+```
+console.log(util.isDate(new Date()));   //true
+```
+
+####util.isError(object)
+
+如果给定的参数object是一个错误对象返回true，否则返回false
+
+```
+console.log(util.isError(new Error()));
+
+```
+
+####一个更强大的功能库–underscore.js
+
+##Node.js文件系统
+
+###文件模块
+
+引入文件模块
+
+```
+const fs = require(‘fs’);
+```
+
+###异步与同步文件操作的区别
+
+异步方法性能更高、速度更快、而且没有阻塞
+
+###打开文件–异步
+
+
+```
+fs.open(path,flags,mode,callback);
+```
+1.path：文件的路径
+
+2.flags：文件打开的行为。
+
+3.model：设置文件模式(权限),文件创建默认权限为0666(可读可写);
+
+r：以读取模式打开文件。如果文件不存在抛出异常
+
+r+：以读写模式打开文件，如果文件不存在抛出异常
+
+rs：以同步的方式读取文件
+
+rs+：以同步的方式读取和写入文件
+
+w：以写入模式打开文件，如果文件不存在则创建
+
+wx：类似于w，但是如果文件路径存在，则文件写入失败
+
+w+：以读写模式打开文件，如果文件不存在则创建
+
+wx+：类似w+，但是如果文件路径存在，则文件读写失败
+
+a：以追加模式打开文件，如果文件不存在则创建
+
+ax：类似于a，但是如果文件路径存在，则文件追加失败
+
+a+：以读取追加模式打开文件，如果文件不存在则创建
+
+ax+：类似a+，但是如果文件路径存在，则文件读取追加失败
+
+4.callback：回调函数，带有两个参数：callback(err,fd)
+
+err是错误对象
+
+fd：表示所打开的文件有多少行
+
+```
+fs.open('test.js','r+',(err,fd) => {
+    if(err){
+        return console.log(err);
+    }
+    console.log(fd);
+});
+```
+
+###获取文件信息
+
+```
+fs.stat(path,callback)
+```
+
+path：文件路径
+callback：回调函数，带有两个参数：err，states，states是fs.States对象
+
+```
+fs.stat('test.js',(err,stats)=> {
+    if(err){
+        return console.error(err);
+    }
+    console.log(stats);
+})
+```
+
+stats类中的方法
+
+
+
+![stats类中的方法](https://wendaoshuai66.github.io/study/note/images/fsstate.png)
+
+###写入文件
+
+####同步写入文件
+
+```
+fs.writeFileSync('test1.js','fdsafdaf');
+console.log('写入成功');
+```
+
+####异步写入文件
+
+```
+fs.writeFile(file,data,{options},callback)
+```
+
+
+writeFile直接打开文件默认是w模式，所以如果文件存在，该方法写入的内容会覆盖旧的文件内容
+
+file：文件名或文件描述符
+
+data：要写入文件的数据，可能是String(字符串)或Buffer(缓冲)对象;
+
+options：该参数是一个对象，包含{encoding、mode、flag}。默认编码utf8，模式为0666，flag为‘w’
+
+callback：回调函数，回调函数只包含出错信息参数(err),在写入失败时返回。
+
+```
+console.log('准备写入文件!');
+fs.writeFile('test1.js','写入成功!!!!!',(err)=> {
+    if(err){
+        return console.error(err);
+    }
+    console.log('数据写入成功!');
+    console.log('-------我是分割线--------');
+    console.log('读取写入的数据');
+    fs.readFile('test1.js',(err,data) => {
+        if(err){
+            return console.error(err);
+        }
+        console.log('异步读取文件数据:' + data.toString());
+    })
+})
+
+```
+
+###读取文件
+
+####同步读取文件
+
+```
+const data = fs.readFileSync('test1.js');
+console.log(data.toString());
+```
+
+####异步读取文件
+
+使用fs.readFile(path,{options},callback)
+
+path:读取文件的路径
+
+options:{encoding,flag},encoding:null,flag:r
+
+callback:err,data;第一个参数是err,第二个参数是读取出的信息。
+
+```
+
+fs.readFile('test1.js',{encoding:'utf8'},(err,data) => {
+    if(err){
+        return console.error(err);
+    }
+    console.log(data);
+})
+```
+
+使用fs.read(fd,buffer,offset,length,position,callback);
+
+fd：通过fs.open()方法返回的文件描述符
+
+buffer：数据写入的缓冲区
+
+offset：缓冲区写入的写入偏移量
+
+length：要从文件中读取的字节数
+
+position：文件读取的起始位置，如果position的值为null，则会从当前文件指针的位置读取
+
+callback：回调函数，有三个参数err、byteRead、buffer。err为错误信息，byteRead表示读取的字节数，buffer为缓冲区对象
+
+```
+var buffer = new Buffer.alloc(1024);
+fs.open('test1.js','r+',(err,fd) => {
+    if(err){
+        return console.error(err);
+    }
+    console.log('打开文件成功！');
+    console.log('准备打开文件！');
+    fs.read(fd,buffer,'0',buffer.length,0,(err,byteRead,buffer) => {
+        if(err){
+            return console.error(err);
+        }
+        console.log(byteRead + '字符被读取');
+        console.log(buffer.toString());
+    })
+})
+```
+
+###关闭文件
+
+fs.close(fd,callback) 异步关闭文件
+
+fd：通过fs.open()方法返回的文件描述符
+
+callback：回调函数
+
+```
+fs.open('test1.js','r+',(err,fd) => {
+    if(err){
+        return console.error(err);
+    }
+    console.log('文件打开成功！');
+    fs.close(fd,()=>{
+        console.log('文件关闭成功！');
+    })
+}) 
+```
+
+fs.closeSync(fd) 同步关闭文件
+
+fd：通过fs.open()方法返回的文件描述符
+
+```
+fs.open('test1.js','r+' ,(err,fd) => {
+    if(err){
+        return console.error(err);
+    }
+    console.log('文件打开成功！');
+    fs.closeSync(fd);
+    console.log('文件关闭成功！');
+})
+```
+
+###截取文件
+
+fs.ftruncate(fd,len,callback) 异步截取
+
+fd：通过fs.open()方法返回的文件描述符
+
+len：文件内容截取的长度
+
+callback：回调函数
+
+```
+fs.open('test1.js','r+',(err,fd) => {
+    if(err){
+        return console.error(err);
+    }
+    console.log('打开文件成功！');
+    console.log('开始截取文件');
+    fs.ftruncate(fd,10,() => {
+        console.log('截取文件成功！');
+        fs.close(fd,() =>{
+            console.log('文件关闭成功！');
+        })
+    });
+})
+```
+
+###删除文件
+
+fs.unlink(path,callback);
+
+###创建目录
+
+fs.mkdir(path,[options],callback)
+
+###读取目录
+
+fs.readdir(path,callback)
+
+###删除目录
+
+fs.rmdir(path,callback)
 
 
 
