@@ -29,4 +29,6 @@
 1. [NodeJS框架入门](#docs/NodeJS框架入门)
 1. [常用的前端构建工具-Webpack](#docs/Webpack)
 1. [初探System.js](#docs/system)
-1. [前端性能优化必备服务器知识](#docs/server-po.md)
+1. [前端性能优化必备服务器知识](#docs/server-po)
+1. [前端性能优化-雅虎35条军规](#docs/性能优化-雅虎)
+1. [面向切面初探](#docs/面向切面)
