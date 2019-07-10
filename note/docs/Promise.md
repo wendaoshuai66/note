@@ -87,3 +87,267 @@ add(fetchX(),fetchY()).then(sum=>{
 ```
 
 注意： 在add(..)内部。Promise.all([ .. ])调用创建了一个promise（它在等待promiseX和promiseY被解析）。链式调用.then(..)创建了另一个promise，它的return values[0] + values[1]这一行会被立即解析（使用加法的结果）。这样，我们链接在add(..)调用末尾的then(..)调用——在代码段最后——实际上是在第二个被返回的promise上进行操作，而非被Promise.all([ .. ])创建的第一个promise。另外，虽然我们没有在这第二个then(..)的末尾链接任何操作，它也已经创建了另一个promise，我们可以选择监听/使用它。
+
+##实现⼀个完整的 Promise/A+
+
+简单来说，promise主要就是为了解决异步回调问题。其主流规范目前主要是 Promise/A+在开始前，我们先写⼀个 promise 应⽤场景来体会下 promise 的作⽤
+
+```
+function fn1(resolve,reject) {
+        setTimeout(()=>{
+            console.log('步骤1：执行')
+            resolve(1)
+        },500)
+    }
+    function fn2(resolve,reject) {
+        setTimeout(()=>{
+            console.log('步骤2：执行')
+            resolve(2)
+        },100)
+    }
+    new Promise(fn1).then(res=>{
+        console.log(res)
+        return new Promise(fn2)
+    }).then(res=>{
+        console.log(res)
+        return 333
+    }).then(res=>{
+        console.log(res)
+    })
+```
+###初步构建
+写一个简单的promise，promise的参数是函数fn，把内部定义resolve方法作为参数传到fn中，调用fn。当异步操作成功后会调用reslove，然后就会执行then注册的回调
+
+废话不多说上代码
+
+```
+
+function Promise(fn){
+  var callback;
+  this.then = function(done){
+    callback = done
+  }
+  function reslove(){
+     callback()
+  }
+  fn(reslove)
+}
+```
+
+###加入链式支持
+
+下面加入链式，成功回调的方法就得变成数组才能存储。同时我们给 resolve ⽅法添加参数，这样就不会输出 undefined。
+
+```
+function Promise() {
+    var promsie = this,
+        value = null,
+        promise._resloves = [];
+    this.then = function (onFulfiled) {
+        promise._resloves.push(onFulfiled)
+        return this;
+    }
+     function reslove(value) {
+         promise._resloves.forEach(callback=>{
+             callback(value)
+         })
+     }
+     fn(reslove)
+}
+```
+
+1.promise = this， 这样我们不用担心某个时刻 this 指向突然改变问题。
+
+2.调用then方法，将回调放⼊ promise._resolves 队列；
+
+3.创建Promise对象同时，调用其fn, 并传入 resolve 方法，当 fn 的异步操作执⾏成功后，就会调用resolve ，也就是执行 promise._resolves 队列中的回调；
+
+4.resolve 方法接收⼀个参数，即异步操作返回的结果，⽅便传值
+
+5.then⽅法中的 return this 实现了链式调用⽤。但是目前的 Promise 还存在⼀一些问题，如果我传入的是一个不包含异步操作的函数，
+
+resolve就会先于 then 执⾏，也就是说 promise._resolves 是⼀个空数组。
+解决方法：为了解决这个问题，我们可以在 resolve 中添加 setTimeout，来将 resolve 中执⾏回调的逻辑放置到JS 任务队列末尾
+
+```
+function Promise() {
+        var promsie = this,
+            value = null,
+            promise._resloves = [];
+        this.then = function (onFulfiled) {
+            promise._resloves.push(onFulfiled)
+            return this;
+        }
+        function reslove(value) {
+            setTimeout(()=>{
+                promise._resloves.forEach(callback=>{
+                    callback(value)
+                })
+            },0)
+        }
+        fn(reslove)
+}
+```
+
+###引入状态，干干，干就完了
+
+```
+function Promise() {
+    var promise = this,
+        value = null,
+        promise_resloves = [],
+        promise._status = "PENDING";
+    this.then = function (onFulfilled) {
+        if(promise._status === "PENDING"){
+            promise_resloves.push(onFulfilled)
+        }
+        onFulfilled(value)
+        return this;
+    }
+    function reslove(value) {
+       setTimeout(()=>{
+           promise._status = 'FULFILLED'
+           promise_resloves.forEach(callback=>{
+               callback(value)
+           })
+       },0)
+    }
+    fn(reslove);
+}
+```
+
+每个 Promise 存在三个互斥状态：pending、fulfilled、rejected。Promise 对象的状态改变，只有两种可能：从 pending 变为 fulfilled 和从 pending 变为 rejected。只要这两种情况发⽣，状态就凝固了，不会再变了，会⼀直保持这个结果。就算改变已经发⽣了，你再对 Promise 对象添加回调函数，也会⽴即得到这个结果。这与事件（Event）完全不同，事件的特点是，如果你错过了它，再去监听，是得不到结果的。
+
+###加上异步结果的传递
+
+前的写法都没有考虑异步返回的结果的传递，我们来加上结果的传递：
+
+```
+function Promise(fn) {
+    var promise = this,
+        value = null,
+        promise._reslove = [],
+        promise._status = 'PENDING';
+    this.then = function (onFulfilled) {
+        if(promise._status === 'PENDING'){
+            promise._reslove.push(onFulfilled)
+        }
+        onFulfilled(value);
+        return this;
+    }
+    function reslove(value) {
+        setTimeout(()=>{
+            promise._status = 'FULFILLED';
+            promise._reslove.forEach(callback=>{
+                value=callback(value)
+            })
+        },0)
+    }
+    fn(reslove)
+}
+```
+
+###串行Promise
+
+串行 Promise 是指在当前 promise 达到 fulfilled 状态后，即开始进行⾏下⼀一个 promise（后邻 promise）。例如我们先⽤ajax从后台获取⽤用户的的数据，再根据该数据去获取其他数据。这⾥我们主要对 then ⽅法进⾏改造：
+
+```
+function Promsie(fn) {
+        var promise = this,
+            value = null,
+            promise._reslove = [],
+            promise._status = 'PENDING';
+        this.then = function (onfuilled) {
+            return new Promsie(function (reslove) {
+                function handle(value) {
+                    var ret = isFunction(onfuilled) && onfuilled(value) || value;
+                    reslove(ret)
+                }
+                if(promise._status === 'PENDING'){
+                    promise._reslove.push(handle)
+                }else if(promise._status === 'FULFILLED'){
+                    handle(value);
+                }
+            })
+        }
+        function reslove(value) {
+            setTimeout(()=>{
+                promise._status = 'FULFIILED';
+                promise._reslove.forEach(callback=>{
+                    value = callback(value)
+                })
+            },0)
+        }
+        fn(reslove)
+    }
+```
+
+
+then 方法该改变⽐较多啊，这⾥我解释下：
+
+ 注意的是，new Promise() 中匿名函数中的 promise （promise._resolves 中的 promise）指向的都是上⼀一个 promise 对象， ⽽不是当前这个刚刚创建的。先我们返回的是新的⼀一个promise对象，因为是同类型，所以链式仍然可以实现。
+ 
+其次，我们添加了⼀一个 handle 函数，handle 函数对上⼀一个 promise 的 then 中回调进⾏行了处理，并且调⽤了当前的 promise 中的 resolve ⽅法。
+
+接着将 handle 函数添加到 上⼀个promise 的 promise._resolves 中，当异步操作成功后就会执⾏
+handle 函数，这样就可以 执⾏ 当前 promise 对象的回调⽅法。我们的⽬的就达到了。
+如果这里你会看到晕看下面的代码
+
+```
+ new Promise(fn1).then(fn2).then(fn3)})
+```
+1.首先我们创建了一个Promise的实例，叫做promsie1；接着就会运行fn1(reslove);
+ 
+2.但是fn1中有一个setTimeout函数，于是就会跳过这一部分；运行后面第一个then方法；
+ 
+3 then返回一个新对象 promise2，promise2对象的reslove方法和then方法中回调函数 fn2都会被封装到handle中然后handle被添加到 promsie1._reslve数组中
+ 
+4.接着运行第二个then方法，同样返回一个新对象 promise3，promise3对象的reslove方法和then方法中回调函数 fn3都会被封装到handle中然后handle被添加到 promsie2._reslove数组中
+ 
+5.到此两个then运行结束后 setTimeout 中的延迟时间⼀到，就会调⽤ promise1的 resolve⽅法。
+ 
+6.resolve ⽅方法的执行⾏，会调用⽤ promise1._resolves 数组中的回调，之前我们添加的 handle ⽅法就会被执行⾏； 也就是 fn2 和 promsie2 的 resolve 方⽅法，都被调⽤用了。
+
+7 以此类推，fn3 会和 promise3 的 resolve ⽅法 ⼀起执⾏，因为后⾯没有 then ⽅法了,promise3._resolves 数组是空的 。
+
+8 ⾄此所有回调执⾏结束但这⾥还存在⼀个问题，就是我们的 then ⾥⾯函数不能对 Promise 对象进⾏处理。这⾥我们需要再次 对 then 进⾏修改，使其能够处理 promise 对象。
+
+```
+ function Promsie(fn) {
+                var promise = this,
+                    value = null,
+                    promise._reslove = [],
+                    promise._status = 'PENDING';
+                this.then = function(onfuilled) {
+                    return new Promsie(function(reslove) {
+                        function handle(value) {
+                            var ret = typeof onfuilled == "function" && onfuilled(value) || value;
+                            if (ret && typeof ret['then'] === "function") {
+                                ret.then(function(value) {
+                                    reslove(value);
+                                })
+                            } else {
+                                reslove(value)
+                            }
+                            reslove(ret)
+                        }
+                        if (promise._status === 'PENDING') {
+                            promise._reslove.push(handle)
+                        } else if (promise._status === 'FULFILLED') {
+                            handle(value);
+                        }
+                    })
+                }
+
+            function reslove(value) {
+                setTimeout(() => {
+                    promise._status = 'FULFIILED';
+                    promise._reslove.forEach(callback => {
+                        value = callback(value)
+                    })
+                }, 0)
+            }
+            fn(reslove)
+        }
+```
+
