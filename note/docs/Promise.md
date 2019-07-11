@@ -122,15 +122,18 @@ function fn1(resolve,reject) {
 
 ```
 
-function Promise(fn){
-  var callback;
-  this.then = function(done){
-    callback = done
-  }
-  function reslove(){
-     callback()
-  }
-  fn(reslove)
+function Promsie(fn) {
+    //需要一个成功时的回调
+    var callback;
+    //一个实例的方法，用来注册异步事件
+    this.then = function(done) {
+        callback = done;
+    }
+
+    function reslove(value) {
+        callback(value);
+    }
+    fn(reslove)
 }
 ```
 
@@ -158,16 +161,16 @@ function Promise() {
 
 1.promise = this， 这样我们不用担心某个时刻 this 指向突然改变问题。
 
-2.调用then方法，将回调放⼊ promise._resolves 队列；
+2.调用then方法，将回调放⼊promise._resloves队列；
 
-3.创建Promise对象同时，调用其fn, 并传入 resolve 方法，当 fn 的异步操作执⾏成功后，就会调用resolve ，也就是执行 promise._resolves 队列中的回调；
+3.创建Promise对象同时，调用其fn, 并传入 resolve 方法，当 fn 的异步操作执⾏成功后，就会调用resolve ，也就是执行 promise._resloves 队列中的回调；
 
 4.resolve 方法接收⼀个参数，即异步操作返回的结果，⽅便传值
 
-5.then⽅法中的 return this 实现了链式调用⽤。但是目前的 Promise 还存在⼀一些问题，如果我传入的是一个不包含异步操作的函数，
+5.then⽅法中的 return this 实现了链式调用⽤。但是目前的 Promise 还存在一些问题，如果我传入的是一个不包含异步操作的函数，
 
-resolve就会先于 then 执⾏，也就是说 promise._resolves 是⼀个空数组。
-解决方法：为了解决这个问题，我们可以在 resolve 中添加 setTimeout，来将 resolve 中执⾏回调的逻辑放置到JS 任务队列末尾
+reslove就会先于 then 执⾏，也就是说 promise._resloves 是⼀个空数组。
+解决方法：为了解决这个问题，我们可以在 reslove 中添加 setTimeout，来将 reslove 中执⾏回调的逻辑放置到JS 任务队列末尾
 
 ```
 function Promise() {
@@ -194,14 +197,13 @@ function Promise() {
 ```
 function Promise() {
     var promise = this,
-        value = null,
+        value = null;
         promise_resloves = [],
         promise._status = "PENDING";
     this.then = function (onFulfilled) {
         if(promise._status === "PENDING"){
             promise_resloves.push(onFulfilled)
         }
-        onFulfilled(value)
         return this;
     }
     function reslove(value) {
@@ -232,7 +234,6 @@ function Promise(fn) {
         if(promise._status === 'PENDING'){
             promise._reslove.push(onFulfilled)
         }
-        onFulfilled(value);
         return this;
     }
     function reslove(value) {
@@ -285,12 +286,13 @@ function Promsie(fn) {
 
 then 方法该改变⽐较多啊，这⾥我解释下：
 
- 注意的是，new Promise() 中匿名函数中的 promise （promise._resolves 中的 promise）指向的都是上⼀一个 promise 对象， ⽽不是当前这个刚刚创建的。先我们返回的是新的⼀一个promise对象，因为是同类型，所以链式仍然可以实现。
+ 注意的是，new Promise() 中匿名函数中的 promise （promise._resolves 中的 promise）指向的都是上⼀个 promise 对象， ⽽不是当前这个刚刚创建的。先我们返回的是新的⼀个promise对象，因为是同类型，所以链式仍然可以实现。
  
-其次，我们添加了⼀一个 handle 函数，handle 函数对上⼀一个 promise 的 then 中回调进⾏行了处理，并且调⽤了当前的 promise 中的 resolve ⽅法。
+其次，我们添加了⼀个 handle 函数，handle 函数对上一个 promise 的 then 中回调进行了处理，并且调⽤了当前的 promise 中的 resolve ⽅法。
 
 接着将 handle 函数添加到 上⼀个promise 的 promise._resolves 中，当异步操作成功后就会执⾏
 handle 函数，这样就可以 执⾏ 当前 promise 对象的回调⽅法。我们的⽬的就达到了。
+
 如果这里你会看到晕看下面的代码
 
 ```
@@ -348,6 +350,71 @@ handle 函数，这样就可以 执⾏ 当前 promise 对象的回调⽅法。�
                 }, 0)
             }
             fn(reslove)
+        }
+```
+
+###失败处理
+
+异步操作不不可能都成功，在异步操作失败时，标记其状态为 rejected，并执⾏行行注册的失败回调。 有了了之前处理理 fulfilled 状态的经验，⽀支持错误处理理变得很容易易。毫⽆无疑问的是，在注册回调、处理理状态
+
+变更更上都要加⼊入新的逻辑:
+
+上代码吧
+
+```
+function myPromsie(fn) {
+            var promise = this;
+            promise._value;
+            promise._reason;
+            promise._reslove = [];
+            promise._reject = [];
+            promise._status = 'PENDING';
+            this.then = function(onFulfiled, onReject) {
+                return myPromsie(function(reslove, reject) {
+                    function handle(value) {
+                        var ret = (typeof onfuilled == "function" && onfuilled(value)) || value;
+                        if (ret && typeof ret['then'] === "function") {
+                            ret.then(function(value) {
+                                reslove(value);
+                            })
+                        } else {
+                            reslove(value)
+                        }
+                        reslove(ret)
+                    }
+
+                    function errorback(value) {
+                        var reason = (typeof onReject == "function" && onReject(value)) || value;
+                        reject(reason)
+                    }
+                    if (promise._status === 'PENDING') {
+                        promise._reslove.push(handle)
+                    } else if (promise._status === 'FULFILLED') {
+                        handle(value);
+                    } else if (promise._status === 'FULFILLED') {
+                        errorback(promise._reason)
+                    }
+                })
+            }
+
+            function reslove() {
+                setTimeout(() => {
+                    promise._status = 'FULFILLED';
+                    promise._reslove.forEach(callback => {
+                        promise._value = callback(value)
+                    });
+                }, 0)
+            }
+
+            function reject() {
+                setTimeout(() => {
+                    promise._status = 'REGECTED';
+                    promise._reject.forEach(callback => {
+                        promise._reason = callback(value)
+                    });
+                }, 0)
+            }
+            fn(reslove, reject)
         }
 ```
 
