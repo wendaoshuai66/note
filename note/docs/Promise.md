@@ -362,55 +362,57 @@ handle 函数，这样就可以 执⾏ 当前 promise 对象的回调⽅法。�
 上代码吧
 
 ```
-function myPromsie(fn) {
+function Promise(fn) {
             var promise = this;
-            promise._value;
+            promise._status = 'PENDING';
+            promise._values;
             promise._reason;
             promise._reslove = [];
             promise._reject = [];
-            promise._status = 'PENDING';
-            this.then = function(onFulfiled, onReject) {
-                return myPromsie(function(reslove, reject) {
-                    function handle(value) {
-                        var ret = (typeof onfuilled == "function" && onfuilled(value)) || value;
-                        if (ret && typeof ret['then'] === "function") {
+            this.then = function(onFulfilled, onRejected) {
+                return new Promise(function(reslove, reject) {
+                    function handle(values) {
+                        var ret = (typeof onFulfilled === 'function' && onFulfilled(values)) || values
+                        if (ret && typeof ret['then'] === 'function') {
                             ret.then(function(value) {
-                                reslove(value);
+                                reslove(value)
+                            }, function(reason) {
+                                reject(reason)
                             })
                         } else {
-                            reslove(value)
+                            reslove(ret)
                         }
-                        reslove(ret)
                     }
 
-                    function errorback(value) {
-                        var reason = (typeof onReject == "function" && onReject(value)) || value;
-                        reject(reason)
+                    function errback(values) {
+                        var reason = (typeof onRejected === 'function' && onRejected(values)) || values
+                        reject(values)
                     }
                     if (promise._status === 'PENDING') {
                         promise._reslove.push(handle)
+                        promise._reject.push(errback)
                     } else if (promise._status === 'FULFILLED') {
-                        handle(value);
-                    } else if (promise._status === 'FULFILLED') {
-                        errorback(promise._reason)
+                        promise._reslove.push(promise._values)
+                    } else if (promise._status === 'REJECTED') {
+                        promise._reject.push(promise._reason)
                     }
                 })
             }
 
-            function reslove() {
+            function reslove(values) {
                 setTimeout(() => {
                     promise._status = 'FULFILLED';
                     promise._reslove.forEach(callback => {
-                        promise._value = callback(value)
+                        promise._values = callback(values)
                     });
                 }, 0)
             }
 
-            function reject() {
+            function reject(values) {
                 setTimeout(() => {
-                    promise._status = 'REGECTED';
+                    promise._status = 'REJECTED';
                     promise._reject.forEach(callback => {
-                        promise._reason = callback(value)
+                        promise._reason = callback(values)
                     });
                 }, 0)
             }
