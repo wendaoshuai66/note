@@ -521,6 +521,7 @@ Promise.all = function(promsies) {
 
                 function rejects(value) {
                     reject(value)
+                    return
                 }
 
                 function resolverAll(index, value) {
@@ -531,10 +532,11 @@ Promise.all = function(promsies) {
                     }
                 }
                 for (var i = 0; i < len; i++) {
-                    Promise.resolve(promsies[i].then(resolver(i), rejects))
+                    Promise.resolve(promsies[i]).then(resolver(i), rejects)
                 }
             })
         }
+
 ```
 
 ###Promise.race
