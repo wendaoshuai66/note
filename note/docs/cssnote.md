@@ -363,6 +363,114 @@ Box垂直方向的距离由margin决定。属于同一个BFC的两个相邻box�
 <p>Hehe</p> 
 ```
 
+##CSS绘制特殊图形
+
+等腰三角形
+
+```
+ /* 相邻的border组合成矩形，各负责一个三角形 */
+ div.dengyaosanjiaoxing {
+            width: 0;
+            height: 0;
+            background-color: transparent;
+            border: 30px solid;
+            border-left-color: transparent;
+            border-bottom-color: yellowgreen;
+            border-top-color: transparent;
+            border-right-color: transparent;
+        }
+```
+
+直角三角形
+
+```
+div.zhijiaosanjiaoxing {
+            width: 0;
+            height: 0;
+            background-color: transparent;
+            border: 30px solid;
+            border-left: 0;
+            border-bottom: 0;
+            border-right-color: yellow;
+            border-top-color: transparent;
+        }
+```
+
+绘制五角星
+
+
+实现三个三角形，可以是通过三个标签；但是这里用的是 CSS 的伪元素选择器(::before, ::after)来实现的并且对于三个选择器通过 position 定位就能组合成一个完整的五角星了
+
+```
+ 
+        .star-five {
+            width: 0;
+            height: 0;
+            position: relative;
+            border-bottom: 70px solid blue;
+            border-left: 100px solid transparent;
+            border-right: 100px solid transparent;
+            transform: rotate(35deg);
+            -moz-transform: rotate(35deg);
+            /* Firefox */
+            -o-transform: rotate(35deg);
+            /* Opera */
+            -webkit-transform: rotate(35deg);
+            /* Safari and Chrome */
+            -ms-transform: rotate(35deg);
+            /* IE 9 */
+            margin-top: 80px;
+        }
+        
+        .star-five::before {
+            content: '';
+            width: 0;
+            height: 0;
+            display: block;
+            border-bottom: 70px solid red;
+            border-left: 100px solid transparent;
+            border-right: 100px solid transparent;
+            position: absolute;
+            top: 0;
+            left: -94px;
+            transform: rotate(75deg);
+            -moz-transform: rotate(75deg);
+            /* Firefox */
+            -o-transform: rotate(75deg);
+            /* Opera */
+            -webkit-transform: rotate(75deg);
+            /* Safari and Chrome */
+            -ms-transform: rotate(75deg);
+            /* IE 9 */
+        }
+        
+        .star-five::after {
+            content: '';
+            width: 0;
+            height: 0;
+            color: blue;
+            border-bottom: 70px solid green;
+            border-left: 100px solid transparent;
+            border-right: 100px solid transparent;
+            transform: rotate(-70deg);
+            -moz-transform: rotate(-70deg);
+            /* Firefox */
+            -o-transform: rotate(-70deg);
+            /* Opera */
+            -webkit-transform: rotate(-70deg);
+            /* Safari and Chrome */
+            -ms-transform: rotate(-70deg);
+            /* IE 9 */
+            position: absolute;
+            left: -100px;
+            top: 0;
+        }
+```
+
+css绘制腾讯公司[企鹅logo](http://www.333cn.com/shejizixun/201806/43498_141178.html)
+
+
+
 
 
 

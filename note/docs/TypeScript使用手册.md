@@ -573,60 +573,38 @@ console.log(buildName4('shuai','age','24'))//shuaiage24
 重载允许一个函数接受不同数量或类型的参数时，作出不同的处理
 
 ```
-//当传入的参数个数不固定时，将所有参数收集到一个变量里和 js 中的 arguments 类似，剩余参数会被当做个数不限的可选参数。 可以一个都没有，同样也可以有任意个表达方式为（...）
-var buildName4 = function(firstName) {
-    var otherName = [];
-    for (var _i = 1; _i < arguments.length; _i++) {
-        otherName[_i - 1] = arguments[_i];
-    }
-    return firstName + otherName.join('');
-};
-console.log(buildName4('liu'));
-console.log(buildName4('shuai', 'age', '24'));
+
 // 我们来实现一下通过传入不同的 type 来实现函数的加操作和乘法操作并返回相应的类型
-var compute = function(type) {
-    var resetData = [];
-    for (var _i = 1; _i < arguments.length; _i++) {
-        resetData[_i - 1] = arguments[_i];
-    }
-    if (type === 1) {
-        return resetData.reduce(function(a, b) { return a + b; });
+const compute = (type: number, ...resetData: number[]):number | string => {
+    if (type === 1 ) {
+      return resetData.reduce((a:number, b:number):number => a + b);
     } else if (type === 2) {
-        return String(resetData.reduce(function(a, b) { return a * b; }));
+      return String(resetData.reduce((a:number, b:number):number => a * b));
     }
-};
-console.log(compute(1, 3, 4, 5, 6)); // 18
-console.log(compute(2, 3, 4, 5, 6)); // '360'
-// 通过上面的实现唯一的缺点就是不能明确通过type返回的相对应的计算的值和类型
-var compute1 = function(type) {
-    var resetData = [];
-    for (var _i = 1; _i < arguments.length; _i++) {
-        resetData[_i - 1] = arguments[_i];
-    }
-    return;
-};
-var compute2 = function(type) {
-    var resetData = [];
-    for (var _i = 1; _i < arguments.length; _i++) {
-        resetData[_i - 1] = arguments[_i];
-    }
-    return;
-};
-var compute3 = function(type) {
-    var resetData = [];
-    for (var _i = 1; _i < arguments.length; _i++) {
-        resetData[_i - 1] = arguments[_i];
-    }
-    if (type === 1) {
-        return resetData.reduce(function(a, b) { return a + b; });
+  } 
+  console.log(compute(1, 3, 4, 5, 6)) // 18
+  console.log(compute(2, 3, 4, 5, 6)) // '360'
+  
+  // 通过上面的实现唯一的缺点就是不能明确通过type返回的相对应的计算的值和类型
+  
+  const compute1 = (type: number, ...resetData: number[]):number;
+  const compute2 = (type: number, ...resetData: number[]):string;
+  const compute3= (type: number, ...resetData: number[]):number | string => {
+    if (type === 1 ) {
+      return resetData.reduce((a:number, b:number):number => a + b);
     } else if (type === 2) {
-        return String(resetData.reduce(function(a, b) { return a * b; }));
+      return String(resetData.reduce((a:number, b:number):number => a * b));
     }
-};
-console.log(compute3(1, 3, 4, 5, 6)); // 18
-console.log(compute3(2, 3, 4, 5, 6)); // '360'
-// 上例中，我们重复定义了多次函数 compute，前几次都是函数定义，最后一次是函数实现。
+  } 
+  console.log(compute3(1, 3, 4, 5, 6)) // 18
+  console.log(compute3(2, 3, 4, 5, 6)) // '360'
+  
+  // 上例中，我们重复定义了多次函数 compute，前几次都是函数定义，最后一次是函数实现。
 ```
+
+##TS基础系列之-类
+
+
 
 
 
