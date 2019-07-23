@@ -465,6 +465,25 @@ div.zhijiaosanjiaoxing {
             left: -100px;
             top: 0;
         }
+        
+        /* 上半圆 */
+        
+        .semi-circle {
+            margin-top: 100px;
+            width: 100px;
+            height: 50px;
+            border-radius: 50px 50px 0 0;
+            background: orange;
+        }
+        /* 下半圆 */
+        
+        .semi-circle1 {
+            margin-top: 100px;
+            width: 100px;
+            height: 50px;
+            border-radius: 0 0 50px 50px;
+            background: orange;
+        }
 ```
 
 css绘制腾讯公司[企鹅logo](http://www.333cn.com/shejizixun/201806/43498_141178.html)
