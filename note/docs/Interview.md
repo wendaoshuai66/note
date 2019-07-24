@@ -253,3 +253,36 @@ let a = 0;
 ```
 
 这里await会对a 冻结
+
+
+##new的实现原理是什么
+
+首先引用小黄书中话
+
+使用 new 来调用函数，或者说发生构造函数调用时，会自动执行下面的操作：
+
+1. 创建(或者说构造)一个全新的对象。
+
+2. 这个新对象会被执行[[原型]]连接。
+
+3. 这个新对象会绑定到函数调用的this。
+
+4. 如果函数没有返回其他对象，那么new表达式中的函数调用会自动返回这个新对象。
+
+```
+function _new() {
+    let target = {}; //创建的新对象
+    //第一个参数是构造函数
+    let [constructor, ...args] = [...arguments];
+    //执行[[原型]]连接;target 是 constructor 的实例
+    target.__proto__ = constructor.prototype;
+    //执行构造函数，将属性或方法添加到创建的空对象上
+    let result = constructor.apply(target, args);
+    if (result && (typeof(result) == "object" || typeof(result) == "function")) {
+        //如果构造函数执行的结构返回的是一个对象，那么返回这个对象
+        return result;
+    }
+    //如果构造函数返回的不是一个对象，返回创建的新对象
+    return target;
+}
+```

@@ -893,51 +893,65 @@ c.reset(); // 执行里面附带的方法,虽然没写内容
 c.interval = 5.0; // 赋值
 ```
 
-###接口继承类
+##Mixins
+
 
 
 
 class Name implements 每个类名{} 把类当成了接口引入，但是要自己去实现接口
 
+
 ```
-// Disposable Mixin
-class Disposable {
-    isDisposed: boolean;
-    dispose() { this.isDisposed = true; }
-}
-// Activatable Mixin
-class Activatable {
-    isActive: boolean;
-    activate() { this.isActive = true; }
-    deactivate(d: Date); // 定义一个未实现的函数
+//首先定义了两个类，它们将做为mixins
+//可以看到每个类都只定义了一个特定的行为或功能。 稍后我们使用它们来创建一个新类，同时具有这两种功能。
+class Disposable{
+    isDisposable:boolean;
+    dispose(){
+        this.isDisposable = true;
+    }
 }
 
-// 把上面二个类方法当成接口使用.
-class SmartObject implements Disposable, Activatable {
-    constructor() { }
-    interact() { this.activate(); }
-    // 我们需要在类中实现接口.我们可以这么做来达到目的，为将要mixin进来的属性方法创建出占位属性。 这告诉编译器这些成员在运行时是可用的
-    // Disposable
-    isDisposed: boolean = false;
-    dispose: () => void;
-    // Activatable
-    isActive: boolean = false;
-    activate: () => void;
-    deactivate: (d: Date) => { 写实现方法 };
+class ActiveAble{
+    isActiveable:boolean;
+    deactive(){
+        this.isActiveable =true;
+    }
 }
-applyMixins(SmartObject, [Disposable, Activatable]);
-let smartObj = new SmartObject();
-setTimeout(() => smartObj.interact(), 1000);
 
-// 最后，把mixins混入定义的类，完成全部实现部分
-function applyMixins(derivedCtor: any, baseCtors: any[]) {
-    baseCtors.forEach(baseCtor => {
-        Object.getOwnPropertyNames(baseCtor.prototype).forEach(name => {
-            derivedCtor.prototype[name] = baseCtor.prototype[name];
-        });
-    });
+//下面创建一个类，结合了这两个mixins;使用 implements
+
+class SmartObject implements Disposable,ActiveAble{
+    //extends而是使用implements。 把类当成了接口，仅使用Disposable和Activatable的类型而非其实现。 
+    //这意味着我们需要在类里面实现接口。 但是这是我们在用mixin时想避免的
+
+    //提前定义一些占位属性
+    //Disposable
+    isDisposable:boolean = false;
+    dispose:()=>void;
+    //ActiveAble
+    isActiveable:boolean = false;
+    deactive:()=>void;
+   
+   
+}
+
+ //最后，把mixins混入定义的类，完成全部实现部分
+applyMixins(SmartObject,[Disposable,ActiveAble])
+
+function applyMixins(der:any,base:any[]){
+    base.forEach(baseitem=>{
+        Object.getOwnPropertyNames(baseitem.prototype).forEach(name=>{
+            der.prototype[name] = baseitem.prototype[name]
+        })
+    })
 }
 ```
+
+##泛型
+
+
+
+  
 
 
 
