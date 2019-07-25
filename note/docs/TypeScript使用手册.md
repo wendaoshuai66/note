@@ -602,6 +602,26 @@ const compute = (type: number, ...resetData: number[]):number | string => {
   // 上例中，我们重复定义了多次函数 compute，前几次都是函数定义，最后一次是函数实现。
 ```
 
+5.this和箭头函数（Lambads）
+
+非常好的使用方式
+
+```
+let MathName = {
+  person:['Mike','Joken','Amada'],
+  getName:function(){
+    return ()=>{
+      let index = Math.floor(Math.random()*3);
+      return {
+        n:this.preson[index]
+      }
+    }
+  }
+}
+let myname = MathName.getName();
+alert(myname().n)
+```
+
 ##TS基础系列之-类
 
 ###声明一个ts类
@@ -949,6 +969,72 @@ function applyMixins(der:any,base:any[]){
 
 ##泛型
 
+
+###认识泛型
+
+```
+//首先写一个函数会返回任何传入它的number。
+
+// function helloNum (arg:number):number{
+//     return arg;
+// }
+
+//需求又改为 函数会返回任何传入它的值，第一反应应该是想到any
+
+// function helloNum (arg:any):any{
+//     return arg;
+// }
+
+//但是问题有了他没有明显的规范，容易出现转换错误
+
+//那么9⃣就的使用泛型  泛型需要 <T>
+
+function helloNum <T>( arg:T):T{
+    return arg;
+}
+//使用的好处,需要什么类型指定什么类型
+
+let helloNumString = helloNum<string>('hello Mike')
+
+```
+
+###应用泛型
+
+```
+//泛型的应用
+
+//泛型不一定<>里非得写<T>;可以随意写入大写<K>;通常是用<T>
+
+function helloStr<T>(arg:T):T{
+    //console.log(arg.length)//这里会报错
+    return arg;
+}
+
+//而我们这么写
+
+function helloArr<T>(args:T[]):T[]{
+
+    console.log(args.length)//这里不会报错
+    return args;
+}
+
+//总结泛型会根据你传递的类型而决定他会具有哪些属性
+let list:Array<string>=helloArr<string>(['1','2','3'])
+```
+
+###泛型类型
+
+```
+//泛型类型
+
+function helloDemo<T>(arg:T):T{
+    return arg;
+}
+
+let myHelloDemo:<K>(arg:K)=>K = helloDemo;
+//或者
+let myHelloDemo1:{<T>(arg:T):T} = helloDemo;
+```
 
 
   
