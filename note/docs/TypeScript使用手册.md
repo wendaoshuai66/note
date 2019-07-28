@@ -878,6 +878,9 @@ let myString :StringArray;
 myString = ['red','blue','orange']
 ```
 
+
+
+
 ###混合类型定义接口
 
 一个接口是可以继承多个接口的，
@@ -1036,6 +1039,98 @@ let myHelloDemo:<K>(arg:K)=>K = helloDemo;
 let myHelloDemo1:{<T>(arg:T):T} = helloDemo;
 ```
 
+###泛型类
+
+```
+//泛型类
+class  HelloNumber<T>{
+    Ten:T;
+    add:(x:T,y:T)=>T;
+}
+
+var myHelloNumber = new HelloNumber<number>();
+myHelloNumber.Ten = 10;
+
+myHelloNumber.add = function(x,y){
+    return x+y;
+}
+alert(myHelloNumber.Ten)
+alert(
+    myHelloNumber.add(10,10))
+    
+```
+
+##Module模式和namespace
+
+
+Module模式：1模块话，可重用 2.封装变量与函数
+
+
+```
+interface StringValidator{
+ isAcceptable(s : string) : boolean;
+}
+let lettersRegexp = (str) => /^[A-Za-z]+$/.test(str);
+let numberRegexp = (str) => /^[0-9]+$/.test(str);
+class LetterOnlyValidator implements StringValidator{
+ 
+isAcceptable(s : string) : boolean{
+    return lettersRegexp(s);
+}
+}
+class ZipCodeValidor implements StringValidator{
+ isAcceptable(s:string):boolean{
+     return s.length == 5 && numberRegexp(s);
+ }
+}
+```
+
+每一次使用在这里都需要调用。
+
+TypeScript中早期使用module来作为模块化。
+
+```
+//module.ts
+export module Validation{
+     export interface StringValidator{
+         isAcceptable(s : string) : boolean;
+     }
+     let lettersRegexp = (str) => /^[A-Za-z]+$/.test(str);
+     let numberRegexp = (str) => /^[0-9]+$/.test(str);
+     export class LetterOnlyValidator implements StringValidator{
+         isAcceptable(s : string):boolean {
+             return lettersRegexp(s);
+         }
+     }
+     export class ZipCodeValidor implements StringValidator{
+         isAcceptable(s : string) : boolean{
+             return numberRegexp(s);
+         }
+     }
+ }
+```
+
+
+由于1.5版本的更新和ES6的出现，把module改成了namespace
+
+```
+namespace Validation{
+    export interface StringValidator{
+        isAcceptable(s : string) : boolean;
+    }
+    const lettersRegexp = (str) => /^[A-Za-z]+$/.test(str);
+    const numberRegexp = (str) => /^[0-9]+$/.test(str);
+    export class LettersOnlyValidator implements StringValidator{
+        isAcceptable(s : string) : boolean {
+            return lettersRegexp(s);
+        }
+    }
+    export class ZipCodeValidator implements StringValidator{
+        isAcceptable(s : string) :boolean {
+            return numberRegexp(s);
+        }
+  
+```
 
   
 
