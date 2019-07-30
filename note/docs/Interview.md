@@ -286,3 +286,46 @@ function _new() {
     return target;
 }
 ```
+##手动实现instanceof
+
+###原理
+
+```
+a instanceof Object
+```
+
+判断Object的prototype是否在a的原型链上。
+
+###实现
+
+
+```
+function myInstance(target, org) {
+            var proto = target.__proto__;
+            if (proto) {
+                if (proto === org.prototype) {
+                    return true;
+                } else {
+                    return myInstance(proto, org)
+                }
+            } else {
+                return false;
+            }
+        }
+```
+
+###验证
+
+```
+var A = function() {};
+    A.prototype = {};
+    var a = new A();
+    A.prototype = {};
+    var b = new A();
+    console.log(a instanceof A); //false
+    console.log(b instanceof A); //true
+    console.log(myInstance(a, A)) //false
+    console.log(myInstance(b, A)) // true
+
+```
+
