@@ -280,5 +280,289 @@ module.exports = config;
 }
 ```
 
+##Webpack的热更新是如何做到的？说明其原理？
+
+Webpack的热更新有称为热替换(Hot Module Replacement)，缩写为HMR。这个机制可以实现不刷新浏览器而将新变更的模块替换旧的模块。原理如下：
+
+![](https://wendaoshuai66.github.io/study/note/images/hmr.jpeg)
+
+
+###server端和client端都做了哪些具体工作：
+
+1.第一步，在Webpack的watch模式下，文件系统中某一个文件发生修改，Webpack监听到文件变化，根据配置文件对模块重新编译打包，并将打包后的代码通过简单的JavaScript对象保存在内存中。
+
+2.第二步是Webpack-dev-server和Webpack之间的接口交互，而在这一步，主要是dev-server的中间件Webpack-dev-middleware和Webpack之间的交互，Webpack-dev-middleware调用Webpack暴露的API对代码变化进行监控，并且告诉webpack，将代码打包到内存中。
+
+3.第三步是Webpack-dev-server对文件变化的一个监控，这一步不同于第一步，并不是监控代码变化重新打包。当我们在配置文件中配置了devServer.watchContentBase为true的时候，Server会监听这些配置文件夹中静态文件的变化，变化后会通知浏览器端对应用进行live reload。注意，这儿是浏览器刷新，和HMR是两个概念。
+
+4.第四步也是webpack-dev-server代码的工作，该步骤主要是通过sockjs（webpack-dev-server 的依赖）在浏览器端和服务端之间建立一个websocket长连接，将Webpack编译打包的各个阶段的状态信息告知浏览器端，同时也包括第三步中Server监听静态文件变化的信息。浏览器端根据这些socket消息进行不同的操作。当然服务端传递的最主要信息还是新模块的hash 值，后面的步骤根据这一hash值来进行模块热替换。
+
+5.webpack-dev-server/client端并不能够请求更新的代码，也不会执行热更模块操作，而把这些工作又交回给了Webpack，webpack/hot/dev-server的工作就是根据webpack-dev-server/client传给它的信息以及dev-server的配置决定是刷新浏览器呢还是进行模块热更新。当然如果仅仅是刷新浏览器，也就没有后面那些步骤了。
+
+6.HotModuleReplacement.runtime是客户端HMR的中枢，它接收到上一步传递给他的新模块的hash值，它通过JsonpMainTemplate.runtime向server端发送Ajax请求，服务端返回一个json，该json包含了所有要更新的模块的hash值，获取到更新列表后，该模块再次通过jsonp请求，获取到最新的模块代码。这就是上图中 7、8、9 步骤。
+
+7.而第 10 步是决定HMR成功与否的关键步骤，在该步骤中，HotModulePlugin将会对新旧模块进行对比，决定是否更新模块，在决定更新模块后，检查模块之间的依赖关系，更新模块的同时更新模块间的依赖引用。
+
+8.最后一步，当HMR失败后，回退到live reload操作，也就是进行浏览器刷新来获取最新打包代码。
+
+
+##如何提高webpack的构建速度?
+
+###常规
+
+####保持版本最新
+
+使用最新稳定版本的webpack、node、npm等，较新的版本更够建立更高效的模块树以及提高解析速度。
+
+#### loaders
+
+由于loader对文件的转换操作很耗时，所以需要让尽可能少的文件被loader处理。我们可以通过以下3方面优化loader配置：
+
+优化正则匹配
+
+通过cacheDirectory选项开启缓存
+
+通过include、exclude来减少被处理的文件
+
+```
+// webpack.common.js
+module: {
+    rules: [
+        {
+            test:/\.js$/,
+            //babel-loader支持缓存转换出的结果，通过cacheDirectory选项开启
+            loader:'babel-loader?cacheDirectory',
+            //只对项目根目录下的src 目录中的文件采用 babel-loader
+            include: [path.resolve('src')],
+            //排除 node_modules 目录下的文件，node_modules 目录下的文件都是采用的 ES5 语法，没必要再通过 Babel 去转换
+            exclude: path.resolve(__dirname, 'node_modules')
+        }
+    ]
+}
+
+```
+
+####optimization.splitChunks 提取公共代码
+
+Webpack 4移除了CommonsChunkPlugin取而代之的是两个新的配置项optimization.splitChunks和optimization.runtimeChunk来简化代码分割的配置。
+
+通过设置 optimization.splitChunks.chunks: "all" 来启动默认的代码分割配置项。
+
+当满足如下条件时，webpack 会自动打包 chunks:
+
+➡️当前模块是公共模块（多处引用）或者模块来自node_modules
+
+➡️当前模块大小大于30kb, 如果此模块是按需加载，并行请求的最大数量小于等于5
+
+➡️如果此模块在初始页面加载，并行请求的最大数量小于等于 3
+
+```
+optimization: {
+    splitChunks: {
+        chunks: 'async', // all async initial 是否对异步代码进行的代码分割
+        minSize: 30000,  // 引入模块大于30kb才进行代码分割
+        maxSize: 0, // 引入模块大于Xkb时，尝试对引入模块二次拆分引入
+        minChunks: 1, // 引入模块至被使用X次后才进行代码分割
+        maxAsyncRequests: 5, // 
+        maxInitialRequests: 3,
+        automaticNameDelimiter: '~', // 模块间的连接符，默认为"~"
+        name: true,
+        cacheGroups: {
+            vendors: {
+                test: /[\\/]node_modules[\\/]/,
+                priority: -10  // 优先级，越小优先级越高
+            },
+            default: {  // 默认设置，可被重写
+                minChunks: 2,
+                priority: -20,
+                reuseExistingChunk: true  // 如果本来已经把代码提取出来，则重用存在的而不是重新产生
+            }
+        }
+    }
+}
+```
+
+#### Smaller = false
+
+减少编译的整体大小，以提高构建性能。尽量保持chunks小巧。
+
+➡️使用更小/更少的库
+
+➡️移除不需要的代码
+
+➡️只编译你在开发的代码
+
+#### Worker Pool
+
+thread-loader可以将非常耗性能的loaders转存到worker pool中。
+
+不要使用太多的workers，因为Node.js的runtime和loader有一定的启动开销。最小化workers和主进程间的模块传输。进程间通讯(IPC)是非常消耗资源的。
+
+####持久化缓存
+
+
+对于一些性能开销较大的loader之前可以添加cache-loader，启用持久化缓存。
+
+使用package.json中的postinstall清楚缓存目录。
+
+####Dlls
+
+使用DllPlugin将更新不频繁的代码进行单独编译。这将改善引用程序的编译速度。即使它增加了构建过程的复杂度。
+
+利用DllPlugin和DllReferencePlugin预编译资源模块， 通过DllPlugin来对那些我们引用但是绝对不会修改的npm包来进行预编译，再通过DllReferencePlugin将预编译的模块加载进来。
+
+####解析(resolve)
+
+以下几步可以提高解析速度：
+
+➡️  尽量减少resolve.modules、resolve.extensions、resolve.mainFiles、resolve.desciriptionsFiles中类目的数量，因为它们会增加文件系统的调用次数。
+
+➡️ 如果你不使用symlinks，可以设置resolve.symlinks: false
+
+➡️ 如果你使用自定义解析plugins，并且没有指定context信息，可以设置resolve.cacheWithContext: false
+
+### Development
+
+####在内存中编译
+
+以下几个实用的工具通过在内存中进行代码的编译和资源的提供，但并不写入磁盘来提高性能：
+
+webpack-dev-server
+
+webpack-hot-middleware
+
+webpack-dev-middleware
+
+#### Devtool
+
+需要注意在不同的devtool的设置，会导致不同的性能差异。
+
+➡️eval具有最好的性能，但不能帮你转义代码
+
+➡️如果你能接受稍微差一些的mapping质量，你可以使用cheap-source-map选择来提高性能
+
+➡️使用eval-source-map配置进行增量编译 
+
+在大多数情况下，cheap-module-eval-source-map是最好的选择。
+
+####避免在生产环境在才会用到的工具
+
+某些实用工具，plugins和loaders都只能在构建生产环境时才使用。例如，在开发时使用UglifyJsPlugin来压缩和修改代码是没有意义的。以下这些工具在开发中通常被排除在外：
+
+UglifyJsPlugin
+
+ExtractTextPlugin
+
+[hash]/[chunkhash]
+
+AggressiveSplittingPlugin
+
+AggressiveMergingPlugin
+
+ModuleConcatenationPlugin
+
+####最小化入口chunk
+
+webpack只会在文件系统中生成已更新的chunk。应当在生成入口chunk时，尽量减少入口chunk的体积，以提高性能。
+
+###Production
+
+不要为了非常小的性能增益，牺牲了你应用程序的质量！！请注意，在大多数情况下优化代码质量，比构建性能更重要。
+
+####多个编译时
+
+当进行多个编译时，以下工具可以帮助到你：
+
+parallel-webpack: 它允许编译工作在woker池中进行。
+cache-loader: 缓存可以在多个编译之间共享。
+
+###工具相关问题
+
+####Babel
+
+项目中的preset/plugins数量最小化
+
+####TypeScript
+
+
+在单独的进程中使用fork-ts-checker-webpack-plugin进行类型检查
+配置loaders时跳过类型检查
+
+使用ts-loader时，设置happyPackMode: true以及 transpileOnly: true
+
+###Saas
+
+node-sass中有个来自Node.js线程池的阻塞线程的bug。当使用thread-loader时，需要设置workParallelJobs: 2
+
+##如何利用Webpack来优化前端性能？（提高性能和体验）
+
+用Webpack优化前端性能是指优化Webpack输出结果，让打包的结果在浏览器运行快速高效。
+
+压缩代码。删除多余的代码/注释，简化代码的写法等等方式。可以利用Webpack的UglifyJsPlugin和ParallelUglifyPlugin来压缩JavaScript代码。利用css-loader?minimize来压缩CSS
+
+压缩图片。利用imagemin-webpack-plugin等图片资源压缩插件，对引用的图片资源进行压缩处理
+
+合理的图片资源引用。使用url-loader加载解析图片资源时，可以通过配置options limit参数，将较小的图片资源转换成base64格式，减少http请求
+
+利用CDN加速。在构建过程中，将引用的静态资源路径修改为CDN上对应的路径。可以利用Webpack对于output参数和各个loader的publicPath参数来修改资源路径
+
+删除死代码(Ttee Shaking)。将代码中没有引用的代码片段删除掉。可以通过在启动Webpack时追加参数--optimize-minimize来实现
+提取公共代码
+
+##npm打包时需要注意哪些？如何利用Webpack来更好的构建？
+
+###npm模块需要注意以下问题：
+
+要支持CommonJS模块化规范，所以打包后的最后结果也要支持该规则
+
+npm模块使用者的环境是不确定的，很有可能并不支持ES6，所以打包的最后结果应该是采用ES5编写的。并且如果ES5是经过转换的，请最好连同SourceMap一同上传
+
+npm包大小应该是尽量小（有些仓库会限制包大小）
+
+发布的模块不能将依赖的模块也一同打包，应该让用户选择性的去自行安装。这样可以避免模块应用者再次打包时出现底层模块被重复打包的情况
+
+UI组件类的模块应该将依赖的其它资源文件，例如.css文件也需要包含在发布的模块里
+
+## 基于以上需要注意的问题，我们可以对于Webpack配置做以下扩展和优化：
+
+CommonJS模块化规范的解决方案： 设置output.libraryTarget='commonjs2'使输出的代码符合CommonJS2模块化规范，以供给其它模块导入使用
+
+
+输出ES5代码的解决方案：使用babel-loader把ES6代码转换成ES5的代码。再通过开启devtool: 'cheap-module-eval-source-map'输出SourceMap以发布调试
+
+npm包大小尽量小的解决方案：Babel在把ES6代码转换成ES5代码时会注入一些辅助函数，最终导致每个输出的文件中都包含这段辅助函数的代码，造成了代码的冗余。解决方法是修改.babelrc文件，为其加入transform-runtime插件
+
+不能将依赖模块打包到npm模块中的解决方案：使用externals配置项来告诉Webpack哪些模块不需要打包
+
+对于依赖的资源文件打包的解决方案：通过css-loader和extract-text-webpack-plugin来实现，配置如下：
+
+```
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: ExtractTextPlugin.extract({ use: ['css-loader'] })  // 提取出chunk中的css到单独的文件中
+      }
+    ]  
+  },
+  plugins: [
+    new ExtractTextPlugin({ filename: 'index.css' })
+  ]
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
