@@ -329,3 +329,110 @@ var A = function() {};
 
 ```
 
+##手动实现call、apply
+
+谈起 call 和 apply 这两个 Function.prototype 上的方法可能很熟悉了，它在继承，改变this指针上有很多的应用场景。接下来我们简单的来重新回忆一下 call 和 apply 这两个函数的功能 
+
+###例子一
+
+```
+let obj = {
+            a: 20
+        }
+
+        function func() {
+            console.log(this.a)
+        }
+        func.call(obj) //20
+```
+
+###例子2
+
+```
+ document.getElementById('app').onclick = function() {
+            let appBtn = function() {
+                console.log(this)
+            }
+            appBtn.call(this)
+        }
+```
+
+###例子3
+
+```
+function FuncA(value) {
+            this.value = value;
+        }
+
+        function FuncB() {
+            FuncA.apply(this, arguments)
+        }
+        FuncB.prototype.getValue = function() {
+            return this.value;
+        }
+        var funcB = new FuncB('hello')
+        console.log(funcB.getValue())
+```
+
+经过上面的例子我们可以直观的知道call apply 的作用大部分都是用作改变this的指针。那么接下来我们来模拟 call apply 实现简单的一下这两个函数
+
+
+###模拟实现call
+
+1.判断当前this是否为函数，防止 Function.prototype.myCall() 直接调用
+
+2.context 为可选参数，如果不传的话默认上下文为 window
+
+3.为context 创建一个 Symbol（保证不会重名）属性，将当前函数赋值给这个属性
+
+4.处理参数，传入第一个参数后的其余参数
+
+5.调用函数后即删除该Symbol属性
+
+```
+Function.prototype.myCall = function(context = window, ...args) {
+                if (this === Function.prototype) {
+                    return undefined; //用于防止Function.prototype.myCall() 直接调用
+                }
+                context = context || window;
+                //防止方法冲突覆盖
+                let fn = Symbol();
+                // 改变 this
+                context[fn] = this;
+                // 将参数放入函数内
+                let result = context[fn](args)
+                    // 删除对象中的函数
+                delete context[fn]
+                return result;
+            }
+            //测试
+        document.getElementById('app').onclick = function() {
+            let appBtn = function() {
+                console.log(this)
+            }
+            appBtn.myCall(this)
+        }
+```
+
+
+###模拟实现apply
+
+apply实现类似call，参数为数组
+
+```
+Function.prototype.myApply = function(context, args) {
+            if (this === Function.prototype) {
+                return undefined;
+            }
+            context = context || window;
+            let fn = Symbol()
+            context[fn] = this;
+            let result;
+            if (Array.isArray(args)) {
+                result = context[fn](...args)
+            } else {
+                result = context[fn]()
+            }
+            return result;
+        }
+```
