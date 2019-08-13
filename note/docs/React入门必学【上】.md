@@ -422,31 +422,31 @@ export default class Hello extends React.Component{
 </tr>
 
 
-tr>
+<tr>
 <td>能否由父组件修改？</td>
 <td > 能 </td>
 <td > 不能</td>
 </tr>
 
-tr>
+<tr>
 <td>能否在组件内部设置默认值？</td>
 <td > 能 </td>
 <td > 能</td>
 </tr>
 
-tr>
+<tr>
 <td>能否在组件内部修改？</td>
 <td > 不能 </td>
 <td > 能</td>
 </tr>
 
-tr>
+<tr>
 <td>能否设置子组件的初始值？</td>
 <td > 能 </td>
 <td > 不能</td>
 </tr>
 
-tr>
+<tr>
 <td>能否修改子组件的值？ ？</td>
 <td > 能 </td>
 <td > 不能</td>
