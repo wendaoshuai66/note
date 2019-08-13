@@ -289,6 +289,231 @@ class Base extends Component {
 
 在组件被卸载并销毁之前立即被调用。在此方法中执行任何必要的清理，例如使定时器无效，取消网络请求或清理在componentDidMount（）中创建的任何监听。
 
+##不可控组件 与 可控组件
+
+###不可控组件:
+
+当一个表单元素设置了defaultValue属性的时候，那么这个组件就变成了不可控组件。
+
+为什么这么说呢？
+
+defaultValue属性设置的值大多数情况下是不允许更改的，由于React的所有的View是基于状态的改变而动态渲染的，而设置了defaultValue是不允许更改，所以就可以称组件为不可控组件。
+
+
+```
+export default class App extends React.Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            value : "hello React",
+        }
+        this.handleChange = this.handleChange.bind(this);
+    }
+    handleChange(){
+        this.setState({
+            value : "hello world"
+        })
+        console.log(this.state.value);
+    }
+    render(){
+        return (
+            <input 
+                onMouseEnter = {this.handleChange}
+                defaultValue = {this.state.value}
+            />
+        )
+    }
+}
+
+
+```
+
+上面代码是：在input元素上设置defaultValue并监听onMouseEnter事件，当鼠标移入的时候，状态改变。可以从图上看出，状态改变但是input中的值并没有改变。
+
+我们在书写代码的时候无法通过状态去控制组件，这就是不可控组件。
+
+但是不可控组件并不是非不可控，通过React.findDOMNode(this.refs.input).value直接取到DOM元素就可以改变。修改一下上面代码。
+
+```
+export default class App extends React.Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            value : "hello React",
+        }
+        this.handleChange = this.handleChange.bind(this);
+    }
+    handleChange(){
+        
+        this.setState({
+            value : "hello world"
+        })
+        console.log(this.state.value);
+        ReactDOM.findDOMNode(this.refs.input).value = this.state.value;
+    }
+    render(){
+        return (
+            <input 
+                onMouseEnter = {this.handleChange}
+                defaultValue = {this.state.value}
+                ref = "input"
+            />
+        )
+    }
+}
+```
+
+###可控组件
+
+当我们在表单元素上不使用defaultValue而使用value的使用，组件就变成了可控的了。
+
+上面代码修改一下。
+
+```
+
+export default class App extends React.Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            value : "hello React",
+        }
+        this.handleChange = this.handleChange.bind(this);
+    }
+    handleChange(){
+        
+        this.setState({
+            value : "hello world"
+        })
+        console.log(this.state.value);
+    }
+    render(){
+        return (
+            <input 
+                onMouseEnter = {this.handleChange}
+                value = {this.state.value}
+            />
+        )
+    }
+}
+```
+
+状态改变，值也改变了，我们发现报了个错。 这个错是因为使用vlaue必须配合一个事件来使用，要么用onChange要么把值设置成readOnly。
+
+把原来的代码onMouseEnter改成onChange：
+
+```
+export default class App extends React.Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            value : "hello React",
+        }
+        this.handleChange = this.handleChange.bind(this);
+    }
+    handleChange(e){
+        this.setState({
+            value : e.target.value
+        })
+        
+        console.log(this.state.value);
+    }
+    render(){
+        return (
+            <input 
+                onChange = {this.handleChange}
+                value = {this.state.value}
+            />
+        )
+    }
+}
+```
+
+可控组件的好处:
+
+符合React的数据流
+
+数据存储在state中，便于使用
+
+便于对数据进行处理
+
+##React事件表
+
+###触摸事件
+
+onTouchCancel
+
+onTouchEnd
+
+onTouchMove
+
+onTouchStart
+
+###键盘事件
+
+onKeyDown
+
+onKeyPress
+
+onKeyUp
+
+###剪切事件
+onCopy
+
+onCut
+
+onPaste
+
+###焦点事件
+onFocus
+
+onBlur
+
+###UI元素
+onScroll
+
+###滚动事件
+onWheel
+
+###鼠标事件
+onClick
+
+onContextMenu
+
+onDoubleClick
+
+onMouseDown
+
+onMouseEnter
+
+onMouseLeave
+
+onMouseMove
+
+onMouseOut
+
+onMouseOver
+
+onMouseUp
+
+###拖拽事件
+onDrop
+
+onDrag
+
+onDragEnd
+
+onDragEnter
+
+onDragExit
+
+onDragLeave
+
+onDragOver
+
+onDragStart
+
+
+
 
 
 
