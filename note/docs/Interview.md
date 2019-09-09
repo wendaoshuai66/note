@@ -269,6 +269,29 @@ let a = 0;
 
 4. 如果函数没有返回其他对象，那么new表达式中的函数调用会自动返回这个新对象。
 
+版本1
+
+```
+function _new(func) {
+            return function() {
+                let target = {
+                    __proto__: func.prototype
+                }
+                func.call(target, ...arguments);
+                return target;
+            }
+        }
+
+        function Perpson(name, age) {
+            this.name = name;
+            this.age = age;
+        }
+        let person = _new(Perpson)('liushuai', 18)
+        console.log(person)
+```
+
+版本2
+
 ```
 function _new() {
     let target = {}; //创建的新对象
