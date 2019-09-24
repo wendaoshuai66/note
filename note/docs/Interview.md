@@ -472,3 +472,39 @@ setTimeout(function() {
             setTimeout(arguments.callee, 1000)
         }, 1000)
 ```
+
+###手写拖拽
+
+####HTML 5 拖放
+
+```
+ <style>
+        #div1 {
+            width: 300px;
+            height: 300px;
+            background: red;
+        }
+    </style>
+<script type="text/javascript">
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("Text", ev.target.id);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("Text");
+            ev.target.appendChild(document.getElementById(data));
+        }
+    </script>
+
+ <div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+    <div id="drag1" draggable="true" ondragstart="drag(event)" style="width: 300px;height:69px;">
+        被拖拽
+    </div>
+```
+
+####原生js
