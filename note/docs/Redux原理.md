@@ -450,5 +450,119 @@ const createStore = (reducer, initState,enhancer) => {
 export default createStore;`
 ```
 
+###compose
+
+在redux中提供了一个组合函数，如果你知道函数式编程的话，那么对compose一定不陌生。如果不了解的话，那我说一个场景肯定就懂了。
+
+```
+//有fn1，fn2，fn3这三个函数，写出一个compose函数实现一下功能
+//1.  compose(fn1,fn2,fn3) 从右到左执行。
+//2.  上一个执行函数的结果作为下一个执行函数的参数。
+const compose = (...) => {
+    
+}
+```
+
+上面的需求就是compose函数，也是一个常考的面试题。如何实现实现一个compose？一步一步来。
+
+首先compose接受的是一系列函数。
+
+```
+const compose = (...fns) => {
+    
+}
+
+```
+
+从右到左执行，我们采用数组的reduce方法，利用惰性求值的方式。
 
 
+```
+const compose = (...fns) => fns.reduce((f,g) => (...args) => f(g(args)));
+
+```
+
+###applayMiddleware
+
+redux中的中间件就是对dispatch的一种增强，在createStore中实现这个东西很简单。源码如下：
+
+```
+const createStore = (reducer,state,enhancer) => {
+    //判断第三个参数的存在。
+    if(enhancer && type enhancer === 'function') {
+        //满足enhance存在的条件，直接return，组织后面的运行。
+        //通过柯里化的方式传参
+        //为什么传入createStore？
+            //虽然是增强，自然返回之后依然是一个store对象，所以要使用createStore做一些事情。
+        //后面两个参数
+            //中间件是增强，必要的reducer和state也必要通过createStore传进去。
+        return enhancer(crateStore)(reducer,state);
+    }
+}
+```
+
+上面就是中间件再createStore中的实现。
+
+中间件的构建通过applyMiddleware实现，来看一下applyMiddleware是怎么实现。由上面可以看出applyMiddleware是一个柯里化函数
+
+```
+const applyMiddleware = (crateStore) => (...args) => {
+    
+}
+```
+
+在applyMiddleware中需要执行createStore来得到接口方法。
+
+```
+
+const applyMiddleware =(...middlewares) => (createStore) => (...args) => {
+    let store = createStore(...args);
+    //占位dispatch，避免在中间件过程中调用
+    let dispatch = () => {
+        throw new Error('error')
+    }
+    let midllewareAPI = {
+        getState: store.getState,
+        dispatch,
+    }
+    //把middlewareAPI传入每一个中间件中
+    const chain = middlewares.map(middleware => middleware(middlewareAPI));
+    //增强dispatch生成，重写占位dispatch,把store的默认dispatch传进去，
+    dispatch = compose(...chain)(store.dispatch);
+    
+    //最后把增强的dispatch和store返回出去。
+    return {
+        ...store,
+        dispatch
+    }
+}
+```
+####如何写一个中间件
+
+根据applyMiddleware中间件参数的传入，可以想出一个基本的中间件是这样的：
+
+```
+const middleware = (store) => next => action => {
+    //业务逻辑
+    //store是传入的middlewareAPI
+    //next是store基础的dispatch
+    //action是dispatch的action
+}
+```
+
+####异步action
+
+在写逻辑的时候必然会用到异步数据的，我们知道reducer是纯函数，不允许有副作用操作的，从上面到现在也可以明白整个redux都是函数式编程的思想，是不存在副作用的，那么异步数据怎么实现呢？必然是通过applyMiddleware提供的中间件接口实现了。
+
+异步中间件必须要求action是一个函数，根据上面中间件的逻辑，我们来写一下。
+
+```
+const middleware = (store) => next => action => {
+    if(typeof action === 'function'){
+        action(store.dispatch,store.getState);
+    }
+    next(action);
+}
+```
+
+判断传入的action是否是一个函数，如果是函数使用增强dispatch，如果不是函数使用普通的dispatch。
