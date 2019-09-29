@@ -21,6 +21,7 @@
 1. [ECMAScript5.1新增语法上](#docs/ES5_top)
 1. [ECMAScript5.1新增语法下](#docs/ES5_bottom)
 1. [Promise](#docs/Promise)
+1. [对深拷贝的研究](#docs/深拷贝)
 1. [JavaScript与QA工程师](#docs/js_and_qa)
 1. [JavaScript集成化测试](#docs/tegratedTesting)
 1. [JavaScript函数式编程--上](#docs/jsFunctionalProgramming)
