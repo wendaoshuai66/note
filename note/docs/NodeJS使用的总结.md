@@ -14,7 +14,46 @@ JavaScript 引擎并不是独立运行的，它运行在宿主环境中，现在
 
 setTimeout(..) 并没有把你的回调函数挂在事件循环队列中。它所做的是设 定一个定时器。当定时器到时后，环境会把你的回调函数放在事件循环中，这样，在未来 某个时刻的 tick 会摘下并执行这个回调。
 
+```
+setTimeout(function() {
+    console.log(1)
+}, 100)
 
+setImmediate(function() {
+    console.log(2)
+})
+
+process.nextTick(() => {
+    console.log(3)
+})
+new Promise((resolve, reject) => {
+    console.log(4)
+    resolve(4)
+}).then(() => {
+    console.log(5)
+})
+console.log(6)
+//执行顺序 4  6 3 5 2 1
+setTimeout(function() {
+    console.log(1)
+}, 0)
+
+setImmediate(function() {
+    console.log(2)
+})
+
+process.nextTick(() => {
+    console.log(3)
+})
+new Promise((resolve, reject) => {
+    console.log(4)
+    resolve(4)
+}).then(() => {
+    console.log(5)
+})
+console.log(6)
+//执行顺序 4 6 3 5 1 2
+```
 
 1⃣️.Express 我们可以 Promise / Defferred采用模式的诸多类库，如Q.js Step wind 
 
@@ -66,5 +105,98 @@ function spawn(genF) {
 ```
 
 ##Node.js 基础
+
+
+根据 Node.js 官网的定义：Node.js 是一个基于 Chrome V8 引擎的 JavaScript 运行环境。 Node.js 使用了一个事件驱动、非阻塞式 I/O 的模型，使其轻量又高效。
+
+
+大白话的理解就是：Node.js不是一种框架也不是一种语言，它是基于Chrome V8 引擎的 JavaScrip 运行时的环境，同时结合Libuv扩展了Javascript功能，使之支持io fs等特性，使得JavaScript能够同时具有DOM操作（浏览器）和IO，文件读写，操作数据库等能力。
+
+Node.js主要分为四大部分，Node Standard Library，Node Bindings，V8，Libuv，架构图如下:
+
+
+
+![](https://wendaoshuai66.github.io/study/note/images/node结构.png)
+
+#####Node Standard Library 是我们每天都在用的标准库，如Http Buffer模块
+
+#####Node Bindings是沟通JS 和C++桥梁，封装V 8 和Libuv的细节，向上层提供基础API的服务
+
+#####这一层是支撑 Node.js 运行的关键，由 C/C++ 实现。
+
+
+>V8 是Google开发的Javascript的引擎，提供Javascript运行环境，主要是将 JS 代码编译成原生机器码，可以说是Node.js的发动机
+>
+>Libuv 是专门为Node.js开发的一个封装库，提供跨平台的异步I/O能力.
+>
+>C-ares：提供了异步处理 DNS 相关的能力。
+>
+>http_parser、OpenSSL、zlib 等：提供包括 http 解析、SSL、数据压缩等其他的能力
+>
+
+
+###事件循环
+
+开题已经为事件循环做了铺垫，异步编程是 Node.js 的一大特色，掌握好 Node.js 的异步编程是每个 Node.js 开发者必备的技能。下一步进一步探索
+
+Node采用V8作为JavaScript的执行引擎，同时使用libuv实现事件驱动式异步I/O。其事件循环就是采用了libuv的默认事件循环。
+
+下面通过图探索 Node.js 对异步 IO 的实现
+
+
+![](https://wendaoshuai66.github.io/study/note/images/libuv.png)
+
+1⃣️ 应用程序先将 JS 代码经 V8 转换为机器码。
+
+2⃣️ 通过 Node.js Bindings 层，向操作系统 Libuv 的事件队列中添加一个任务。
+
+3⃣️ Libuv 将事件推送到线程池中执行。
+
+4⃣️ 线程池执行完事件，返回数据给 Libuv。
+
+5⃣️ Libuv 将返回结果通过 Node.js Bindings 返回给 V8。
+
+6⃣️ V8 再将结果返回给应用程序。
+
+#####Event Loop 事件循环，Thread Pool 线程池都是由 Libuv 提供，Libuv 是整个 Node.js 运行的核心。
+
+
+####Libuv 实现了 Node.js 中的 Eventloop ，主要有以下几个阶段：
+
+
+![](https://wendaoshuai66.github.io/study/note/images/libuv1.png)
+
+上图中每一个阶段都有一个先进先出的回调队列，只有当队列内的事件执行完成之后，才会进入下一个阶段。
+
++ timers：执行 setTimeout 和 setInterval 中到期的 callback。
++ pending callbacks：上一轮循环中有少数的 I/O callback 会被延迟到这一轮的这一阶段执行。
+
+
+   执行一些系统操作的回调，例如 tcp 连接发生错误。
+   
++ idle, prepare：仅内部使用。
++ poll：最为重要的阶段，执行 I/O callback(node 异步 api 的回调，事件订阅回调等)，在适当的条件下会阻塞在这个阶段。
+
+
+如果 poll 队列不为空，直接执行队列内的事件，直到队列清空。
+如果 poll 队列为空。
+如果有设置 setImmediate，则直接进入 check 阶段。
+如果没有设置 setImmediate，则会检查是否有 timers 事件到期。
+如果有 timers 事件到期，则执行 timers 阶段。
+如果没有 timers 事件到期，则会阻塞在当前阶段，等待事件加入。
+
++ check：执行 setImmediate 的 callback。
++ close callbacks：执行 close 事件的 callback，例如 socket.on("close",func)
+
+除此之外，Node.js 提供了 process.nextTick(微任务，promise 也一样) 方法，在以上的任意阶段开始执行的时候都会触发。
+
+#####Event Loop 是一个很重要的概念，指的是计算机系统的一种运行机制。
+
+#####Libuv 在 Linux 下基于 Custom Threadpool 实现。
+
+#####Libuv 在 Windows 下基于 IOCP 实现。
+
+
+ 
 
 
