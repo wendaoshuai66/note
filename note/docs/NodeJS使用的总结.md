@@ -216,6 +216,14 @@ Node.js 采用 V8 的 分代式垃圾回收策略，将内存分为新生代内�
 + 新生代内存通过 Scavenge 算法，将内存分为 From 空间 和 To 空间，初始时 From 空间存放所有对象，To 空间空闲。在一次垃圾回收时，清除 From 空间中没有使用的对象，然后将 To 空间和 From 交换。
 + 老生代内存通过 Mark-Sweep 和 Mark-compact，标记清除和移动清除。标记没有使用的内存空间，标记完毕后进行统一清除，清除后为了避免内存空间不连续，会将已使用的内存连在一起，放在队列的一端，然后清除另一端的所有内存空间。
 
- 
+![](https://wendaoshuai66.github.io/study/note/images/gc1.png)
+
+![](https://wendaoshuai66.github.io/study/note/images/gc2.png)
+
+![](https://wendaoshuai66.github.io/study/note/images/gc3.png)
+
+这⾥里需要注意， Buffer 类型需要处理理的是⼤大量量的⼆二进制数据，假如⽤用⼀一点就向系统去申请，则会造成 频繁的向系统申请内存调⽤用，所以 Buffer 所占⽤用的内存不不再由 V8 分配，⽽而是在 Node.js 的 C++ 层⾯面完 成申请，在 JavaScript 中进⾏行行内存分配。因此，这部分内存我们称之为堆外内存。
+
+![](https://wendaoshuai66.github.io/study/note/images/gc4.png)
 
 
