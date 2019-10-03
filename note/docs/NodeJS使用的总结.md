@@ -30,3 +30,37 @@ var r1 = await fetch('https://api.github.com/users/github');
 var json1 = await r1.json(); console.log(json1.bio); }; 
 fetchData();
 ```
+
+实现async/await中的async函数
+
+```
+function spawn(genF) {
+    return new Promise((reslove, reject) => {
+        const gen = genF();
+        let next;
+
+        function step(nextF) {
+            try {
+                next = nextF();
+            } catch (e) {
+                return reject(e)
+            }
+            if (next.done) {
+                return reslove(next.value)
+            }
+            Promise.resolve(next.value).then(function(v) {
+                step(function() {
+                    return gen.next(v)
+                });
+            }, function(e) {
+                step(function() {
+                    return gen.next(e)
+                });
+            })
+        }
+        step(function() {
+            return gen.next(undefined)
+        })
+    })
+}
+```
