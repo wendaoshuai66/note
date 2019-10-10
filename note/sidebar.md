@@ -30,6 +30,7 @@
 1. [NodeJS入门](#docs/NodeJS入门)
 1. [NodeJS使用的总结](#docs/NodeJS使用的总结)
 1. [Package.json 依赖管理](#docs/Package.json依赖管理)
+1. [为什么要使用 package-lock.json](#docs/为什么要使用package-lock.json)
 1. [NodeJS框架入门](#docs/NodeJS框架入门)
 1. [KOA源码的阅读](#docs/KOA源码的阅读)
 1. [深入 Koa 原理](#docs/深入Koa原理)
