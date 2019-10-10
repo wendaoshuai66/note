@@ -263,6 +263,12 @@ responseGet.forEach(ele => {
 module.exports = proto;
 ```
 
+##总结
+
+仅供参考
+
+![](https://wendaoshuai66.github.io/study/note/images/koaansy.png)
+
 ##相关链接
 
 [diy-koa 代码仓库](https://github.com/wendaoshuai66/diguikoa)
