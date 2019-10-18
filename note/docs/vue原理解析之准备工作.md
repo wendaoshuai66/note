@@ -69,6 +69,7 @@ vue 一直以简单，快速著称，也自称为渐进式框架今天我们来�
 
 ![](https://wendaoshuai66.github.io/study/note/images/vue1.png)
 
+![](https://wendaoshuai66.github.io/study/note/images/vue2.png)
 
 ###compiler
 
@@ -81,6 +82,14 @@ compiler 目录包含 Vue.js 所有编译相关的代码。它包括把模板解
 core 目录包含了 Vue.js 的核心代码，包括内置组件、全局 API 封装，Vue 实例化、观察者、虚拟 DOM、工具函数等等。
 
 这里的代码可谓是 Vue.js 的灵魂，也是我们之后需要重点分析的地方。
+
+
+![](https://wendaoshuai66.github.io/study/note/images/vue2.png)
+
+core 文件作为Vue.js核心文件夹
+
+1.compents 
+ 
 
 ###platform
 

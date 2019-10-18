@@ -42,6 +42,7 @@
 1. [面向切面初探](#docs/面向切面)
 1. [前端架构与性能优化那些事](#docs/前端架构与性能优化那些事)
 1. [vue 原理解析之准备工作](#docs/vue原理解析之准备工作)
+1. [vue 原理解析之数据驱动](#docs/vue原理解析之数据驱动)
 1. [TypeScript使用手册](#docs/TypeScript使用手册)
 1. [React入门必学【上】](#docs/React入门必学【上】)
 1. [React入门必学【下】](#docs/React入门必学【下】)
