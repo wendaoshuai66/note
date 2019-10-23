@@ -118,4 +118,7 @@ Vue.js 会定义一些工具方法，这里定义的工具方法都是会被浏�
 
 这样的目录设计让代码的阅读性和可维护性都变强，是非常值得学习和推敲的。
 
+![](https://wendaoshuai66.github.io/study/note/images/vue5.png)
+
+
 
