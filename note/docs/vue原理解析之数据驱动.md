@@ -74,23 +74,36 @@ Vue.prototype._init = function (options?: Object) {
   }
   // expose real self
   vm._self = vm
+  //初始化生命周期相关的
   initLifecycle(vm)
+  //初始化事件监听相关
   initEvents(vm)
+  //初始化编译render相关的
   initRender(vm)
+  
+  // 调用beforeCreate钩子函数并且触发beforeCreate钩子事件
   callHook(vm, 'beforeCreate')
   initInjections(vm) // resolve injections before data/props
+  // 初始化props、methods、data、computed与watch
   initState(vm)
+  
   initProvide(vm) // resolve provide after data/props
+  
+  
+  // 调用created钩子函数并且触发created钩子事件
   callHook(vm, 'created')
 
   /* istanbul ignore if */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+     //格式化组件名
     vm._name = formatComponentName(vm, false)
     mark(endTag)
     measure(`vue ${vm._name} init`, startTag, endTag)
   }
 
   if (vm.$options.el) {
+      // 挂载组件方法触发组件的DOM渲染
+
     vm.$mount(vm.$options.el)
   }
 }
