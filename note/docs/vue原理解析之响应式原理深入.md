@@ -54,7 +54,7 @@ __defineSetter__
 ```
 
 微软VBScript，拥有类，类可以get、set，可以操作打印机office等
-#initState
+###initState
 
 在Vue初始化的阶段，_init方法执行的时候，会执行 initState（vm）方法，它的定义是在src/core/instance/state.js 中。
 
