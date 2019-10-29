@@ -37,6 +37,7 @@
 1. [深入 Koa 原理](#docs/深入Koa原理)
 1. [常用的前端构建工具-Webpack](#docs/Webpack)
 1. [常用的前端构建工具-Webpack使用总结](#docs/Webpack使用总结)
+1. [常用的前端构建工具-Webpack系列手写模块打包代码](#docs/Webpack系列手写模块打包代码)
 1. [初探System.js](#docs/system)
 1. [前端性能优化必备服务器知识](#docs/server-po)
 1. [前端性能优化-雅虎35条军规](#docs/性能优化-雅虎)
