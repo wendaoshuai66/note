@@ -232,6 +232,369 @@ Rollup (https://rollupjs.org)是一个和 Webpack很类似但专注于 ES6 的�
 
 • Rollup不支持 CodeSpliting，但好处是在打包出来的代码中没有 Webpack那段模块 的加载、执行和缓存的代码
 
+##整体流程分析
+
+
+
+#####第一步，执行webpack函数，在webpack函数中初始化compiler对象 new Compiler(options.context)，初始化自定义插件 plugin.apply(compiler)。
+
+```
+const webpack = (options, callback) => {
+	let compiler;
+	if (typeof options === "object") {
+		options = new WebpackOptionsDefaulter().process(options);
+		//创建编译对象
+		compiler = new Compiler(options.context);
+		compiler.options = options;
+		
+		
+		//将Node.js格式的文件系统应用于compiler。
+		new NodeEnvironmentPlugin({
+			infrastructureLogging: options.infrastructureLogging
+		}).apply(compiler);
+		if (options.plugins && Array.isArray(options.plugins)) {
+			for (const plugin of options.plugins) {
+			// 执行自定义插件
+				if (typeof plugin === "function") {
+					plugin.call(compiler, compiler);
+				} else {
+				
+					plugin.apply(compiler);
+				}
+			}
+		}
+		//触发environment钩子函数：在准备环境之前运行插件。
+		compiler.hooks.environment.call();
+		// 触发afterEnvironment钩子函数：执行插件环境设置完成。
+		compiler.hooks.afterEnvironment.call();
+		//处理配置中的target参数，例如 web，node，根据不同配置，配置默认的plugin。
+		compiler.options = new WebpackOptionsApply().process(options, compiler);
+	} 
+	if (callback) {
+	 // 开始编译
+		compiler.run(callback);
+	}
+	// 返回compiler
+	return compiler;
+};
+
+```
+
+compiler.run(callback）执行后，就会根据生命周期，执行对应的事件钩子函数
+
+
+#####第二步，触发 WebpackOptionsApply 中间件
+
+在 compilation 阶段会记录好依赖的工厂类。
+
+在 make 阶段的时候会创建一个 SingleEntryPlugin 实例。
+
+调用 compilation.addEntry 方法。
+
+addEntry 会调用 _addModuleChain 方法，最终经过几次调用后会进入到 NormalModule.js 中的 build 方法。
+
+```
+class WebpackOptionsApply extends OptionsApply {
+    process(options, compiler) {
+         ...
+        if (typeof options.target === "string") {
+            let JsonpTemplatePlugin;
+            let FetchCompileWasmTemplatePlugin;
+            let ReadFileCompileWasmTemplatePlugin;
+            let NodeSourcePlugin;
+            let NodeTargetPlugin;
+            let NodeTemplatePlugin;
+
+            switch (options.target) {
+                case "web":
+                    ...
+                    break;
+                case "webworker":
+                    {
+                    ....
+                        break;
+                    }
+                case "node":
+                case "async-node":
+                  ...
+                    break;
+                case "node-webkit":
+                ...
+                    break;
+                case "electron-main":
+
+                    break;
+                case "electron-renderer":
+                case "electron-preload":
+
+                    break;
+
+            }
+        }
+        ...
+        new EntryOptionPlugin().apply(compiler);
+        ...
+    }
+}
+
+module.exports = WebpackOptionsApply;
+```
+上述代码new EntryOptionPlugin().apply(compiler) 的时候会创建一个 SingleEntryPlugin 实例。
+
+```
+// WebpackOptionsApply -> EntryOptionPlugin ->SingleEntryPlugin
+class SingleEntryPlugin {
+  apply(compiler) {
+    compiler.hooks.compilation.tap(
+      'SingleEntryPlugin',
+      (compilation, { normalModuleFactory }) => {
+        compilation.dependencyFactories.set(
+          SingleEntryDependency,
+          normalModuleFactory
+        );
+      }
+    );
+    compiler.hooks.make.tapAsync(
+      'SingleEntryPlugin',
+      (compilation, callback) => {
+        const { entry, name, context } = this;
+        const dep = SingleEntryPlugin.createDependency(entry, name);
+        compilation.addEntry(context, dep, name, callback);
+      }
+    );
+  }
+  static createDependency(entry, name) {
+    const dep = new SingleEntryDependency(entry);
+    dep.loc = { name };
+    return dep;
+  }
+}
+```
+
+调用 compilation.addEntry 方法。
+
+addEntry 会调用 _addModuleChain 方法，最终经过几次调用后会进入到 NormalModule.js 中的 build 方法。
+
+
+#####第三步，调用 NormalModule 中的 build 方法。
+
+build 方法会先执行 doBuild，将原始代码经过 loader 进行转义。
+
+经过 doBuild 之后，我们的任何模块都被转成了标准的 JS 模块，那么下面我们就可以编译 JS 了
+
+```
+doBuild(options, compilation, resolver, fs, callback) {
+  const loaderContext = this.createLoaderContext(
+    resolver,
+    options,
+    compilation,
+    fs
+  );
+  // 执行loaders
+  runLoaders(
+    {
+        resource: this.resource,
+        loaders: this.loaders,
+        context: loaderContext,
+        readResource: fs.readFile.bind(fs)
+    },
+    (err, result) => {
+      if (result) {
+          this.buildInfo.cacheable = result.cacheable;
+          this.buildInfo.fileDependencies = new Set(result.fileDependencies);
+          this.buildInfo.contextDependencies = new Set(
+              result.contextDependencies
+          );
+      }
+      // result 是一个数组，数组的第一项就是编译后的代码
+      const resourceBuffer = result.resourceBuffer;
+      const source = result.result[0];
+      const sourceMap = result.result.length >= 1 ? result.result[1] : null;
+      const extraInfo = result.result.length >= 2 ? result.result[2] : null;
+      // this._source 是一个 对象，有name和value两个字段，name就是我们的文件路径，value就是 编译后的JS代码
+      this._source = this.createSource(
+          this.binary ? asBuffer(source) : asString(source),
+          resourceBuffer,
+          sourceMap
+      );
+      return callback();
+    }
+  );
+}
+```
+
+##### 第四步，调用 parser.parse 方法，将代码转换成 ast。 使用 Parser 分析项目依赖
+
+
+
+```
+build(options, compilation, resolver, fs, callback) {
+  return this.doBuild(options, compilation, resolver, fs, err => {
+    // 编译成ast
+    const result = this.parser.parse(
+      this._ast || this._source.source(),
+      {
+          current: this,
+          module: this,
+          compilation: compilation,
+          options: options
+      },
+      (err, result) => {
+          if (err) {
+              handleParseError(err);
+          } else {
+              handleParseResult(result);
+          }
+      }
+    );
+  });
+}
+
+static parse(code, options) {
+  let ast;
+  let error;
+  let threw = false;
+  try {
+      // 编译成ast
+      ast = acorn.parse(code, parserOptions);
+  } catch (e) {
+      error = e;
+      threw = true;
+  }
+  return ast;
+}
+```
+
+#####第五步，解析完 ast 后，就会对每个模块所依赖的对象进行收集。
+
+如果我们有 import a from 'a.js' 这样的语句，那么经过 babel-loader 之后会变成 var a = require('./a.js') ，而对这一句的处理就在 walkStatements 中，这里经过了几次跳转，最终会发现进入了 walkVariableDeclarators 方法，这里我们这是声明了一个 a 变量。这个方法的主要内容如下：
+
+```
+// import a from 'a.js'
+walkVariableDeclaration(statement) {
+  for (const declarator of statement.declarations) {
+    switch (declarator.type) {
+      case "VariableDeclarator": {
+        // 这里就是我们的变量名 a
+        this.walkPattern(declarator.id);
+        // 这里就是我们的表达式 `require('./a.js')`
+        if (declarator.init) this.walkExpression(declarator.init);
+        break;
+      }
+    }
+  }
+}
+```
+
+这里的require('./a.js') 是一个函数调用，在这里就会创建一个依赖，记录下对 a.js 模块的依赖关系，最终这些依赖会被放到 module.dependencies 中
+
+
+#####在收集完所有依赖之后，会调用 compilation.seal 方法。 使用 Template 生成结果代码
+
+遍历所有的 chunk 和 chunk 所依赖的文件。
+
+将这些文件通过调用 MainTemplate 中的 render 生成最终代码。
+
+```
+// 将结果包裹到一个IIFE中
+renderBootstrap(hash, chunk, moduleTemplate, dependencyTemplates) {
+  const buf = [];
+  buf.push(
+    this.hooks.bootstrap.call(
+      "",
+      chunk,
+      hash,
+      moduleTemplate,
+      dependencyTemplates
+    )
+  );
+  buf.push(this.hooks.localVars.call("", chunk, hash));
+  buf.push("");
+  buf.push("// The require function");
+  buf.push(`function ${this.requireFn}(moduleId) {`);
+  buf.push(Template.indent(this.hooks.require.call("", chunk, hash)));
+  buf.push("}");
+  buf.push("");
+  buf.push(
+    Template.asString(this.hooks.requireExtensions.call("", chunk, hash))
+  );
+  buf.push("");
+  buf.push(Template.asString(this.hooks.beforeStartup.call("", chunk, hash)));
+  buf.push(Template.asString(this.hooks.startup.call("", chunk, hash)));
+  return buf;
+}
+```
+
+##webpack整体流程分析总结
+
+###流程概括
+
+1.初始化参数（得到参数）：
+
+从配置文件（webpack.config.js）中与shell 语句中读取与合并参数，得出最终的参数。
+
+2.开始编译：
+
+用上一步中的得到的参数初始化Compiler对象，加载所有配置插件，通过执行对象的run 方法开始执行编译 。
+
+```
+new Compiler(初始化得到的最终参数)；
+
+//通过apply 加载所有配置插件
+for (const plugin of options.plugins) {
+			// 执行自定义插件
+				if (typeof plugin === "function") {
+					plugin.call(compiler, compiler);
+				} else {
+				
+					plugin.apply(compiler);
+				}
+			}
+			
+//执行对象的run 方法开始执行编译
+compiler.run(callback);
+```
+
+
+3.确定入口：
+
+根据配置中的 entry 找出所有入口文件 。
+
+WebpackOptionsApply -> EntryOptionPlugin ->SingleEntryPlugin
+
+4.编译模块:
+从入口文件出发，开始compilation 过程，调用所有配置的 Loader 对模块进行翻译，再将编译好的文件内容解析成 AST 静态语法树，再找出该
+模块依赖的模块，再递归本步骤直到所有入口依赖的文件都经过了本步骤的处理 。
+
+5.完成模块编译 
+
+经过第 4 步使用 Loader 翻译完所有模块后，生成 AST 语法树，在 AST 语法树中可以分析到模块之间的依赖关系，对应做出优化。
+
+6.输出资源
+
+将所有模块中的 require 语法替换成__webpack_require__来模拟模块化操作。
+
+7.最后把所有的模块打包进一个自执行函数（IIFE）中。
+
+
+###流程图
+
+这张图画的很好，把 webpack 的流程画的很细致。
+
+
+![](https://wendaoshuai66.github.io/study/note/images/webpack_流程图.png)
+
+
+
+
+
+
+ 
+
+
+
+
+
 
 
 
