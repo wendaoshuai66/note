@@ -201,6 +201,7 @@ const async1 = 'webpack源码分析async1';
 export default async1;
 ```
 //抽离出的main.js
+
 ```
 (function(modules) { // webpackBootstrap
     // The module cache
@@ -278,4 +279,17 @@ export default async1;
         });
 ```
 
+##手写一个模块打包器
 
+
+###整体流程分析
+
+1.读取入口文件
+
+2.将内容转换为ast树
+
+3.深度遍历语法树，找到所有的依赖，并加入到一个数组中。
+
+4.将ast树转换为可执行js的代码
+
+5编写__webpack_require__函数，根据入口文件自动执行完所有的依赖。
