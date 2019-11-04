@@ -585,6 +585,160 @@ WebpackOptionsApply -> EntryOptionPlugin ->SingleEntryPlugin
 ![](https://wendaoshuai66.github.io/study/note/images/webpack_流程图.png)
 
 
+##编写插件
+
+###一个最基础的 Plugin 的代码是这样的:
+
+```
+class basePlugin {
+    constructor(options){
+        //用户自定义配置
+        this.options = options
+        console.log(this.options)
+    }
+    apply(compiler) {
+        console.log("This is my first plugin.")
+    }
+}
+
+module.exports = basePlugin
+
+
+const BasicPlugin =require (’./BasicPlug工n. j s ’); 
+module.export = {
+
+    plugins:[
+     new. BasicPlugin();
+    ]
+
+```
+
+Webpack 启动后
+
+1.在读取配置的过程中会先执行 new BasicPlugin(options )，初始化一个 BasicPlugin 并获得其实例。
+2.在初始化 compiler 对象后，
+
+3.再调用 basicPlugin.apply (compiler)为插件实例传入 compiler 对象。
+
+4.插件实例在获取到 compiler 对象后， 就可以通过 compiler.plugin (事件名称，回调函数)监听到 Webpack 广播的事件， 并且可以通过 compiler 对象去操作 Webpack.
+
+这就是最简单的 Plugin😊， 但在实际开发中还 有很多细节需要注意 ，下面进行详细介绍。
+
+
+###到底Compiler 和 Compilation是什么
+
+开发 Plugin 时最常用的两个对象就是 Compiler和 Compilation，它们是 Plugin和 Webpack
+之间的桥梁。 Compiler 和 Compilation 的含义如下。
+
+
+Compiler对象包含了 Webpack环境的所有配置信息，包含 options、loaders、plugins 等信息。这个对象在 Webpack 启动时被实例化，它是全局唯一的，可以简单地将 它理解为 Webpack 实例。
+
+
+Compiler-----》 Webpack 实例
+
+
+
+Compilation对象包含了当前的模块资源、编译生成资源、变化的文件等。当 Webpack 以开发模式运行时，每当检测到一个文件发生变化，便有一次新的 Compilation 被
+创建 。 Compilation 对象也提供了很多事件回调供插件进行扩展。通过 Compilation 也能读取到 Compiler对象。
+
+
+Compiler和 Compilation的区别在于: Compiler代表了整个 Webpack从启动到关闭的生命周期，而 Compilation 只代表一次新的编译。
+
+###温习一下webpack事件流
+
+
+webpack就像是我们工厂中流水线，要经过一系列的流程才会把我们的源码转化成输出结果 。在这条流水线当中每个处理流程的职责都是单一的，多个流程之间存在依赖关系，只有在完成当前处理后才能提交给下一个流程去处理。插件就像插入生产线中的某个功能，在特定的时机对生产线上的资源进行处理。
+
+Webpack通过 Tapable [(https://github.com/webpack/tapable)](https://github.com/webpack/tapable)来组织这条复杂的流水线。 Webpack 在运行的过程中会广播事件，插件只需要监听它所关心的事件，就能加入这条生产线中，去改变流水线的运作。 Webpack的事件流机制保证了插件的有序性，使得整个系统的扩展性良好。
+
+Webpack 的事件流机制应用了观察者模式，和 Node扣中的 EventEmitter非常相似 。Compiler 和 Compilation都继承自 Tapable，可以直接在 Compiler和 Compilation对象上广播和监昕事 件，方法如下:
+
+```
+/**
+*广播事件
+食 event-name 为事件名称，注意不要和现有的事件重名 * params 为附带的参数
+*/
+compiler.apply ’event-name’, params);
+/**
+*监昕名称为 event-name 的事件，当 event-name 事件发生时，函数就会被执行 。 *同时函数中的 params 参数为广播事件时附带的参数 。
+*/
+compiler.plugin (’event-name’, function (params) {
+
+} ) ,
+```
+
+```
+class SyncHook{
+    constructor(){
+        this.hooks = {}
+    }
+
+    // 订阅事件
+    tap(name, fn){
+    
+        this.hooks[name] = [fn]
+    }
+
+    // 发布
+    call(){
+        this.hooks[name].forEach(fn=>fn())
+    }
+}
+```
+
+###实战剖析
+来看一看已经被众人玩坏的 html-webpack-plugin
+
+
+```
+const pluginName = 'ConsoleLogOnBuildWebpackPlugin';
+
+
+let assetsHelp = (data) => {
+    let js = [];
+    let css = [];
+    let dir = {
+        js: item => `<script src="${item}" class="lazyload-js" type="module"></script>`,
+        css: item => `<link rel="stylesheet" href="${item}">`
+    }
+    for (let jsitem of data.js) {
+        js.push(dir.js(jsitem))
+    }
+    for (let cssitem of data.css) {
+        css.push(dir.js(cssitem))
+    }
+    return {
+        js,
+        css
+    }
+}
+
+
+class ConsoleLogOnBuildWebpackPlugin {
+    apply(compiler) {
+        compiler.hooks.compilation.tap(pluginName, compilation => {
+
+            compilation.hooks.htmlWebpackPluginAfterHtmlProcessing.tap(pluginName, (webpackPluginData) => {
+                console.log('🍎🍎🍎🍎🍎', webpackPluginData.assets)
+                let _html = webpackPluginData.html;
+                let result = assetsHelp(webpackPluginData.assets)
+                _html = _html.replace(/@components/g, '../../../components');
+                _html = _html.replace('<!--injectjs-->', result.js.join(''));
+                _html = _html.replace('<!--injectcss-->', result.css.join(''));
+                webpackPluginData.html = _html;
+            })
+        });
+
+    }
+}
+module.exports = ConsoleLogOnBuildWebpackPlugin;
+```
+
+
+
+
+
+
 
 
 
