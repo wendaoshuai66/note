@@ -203,80 +203,46 @@ export default async1;
 //抽离出的main.js
 
 ```
-(function(modules) { // webpackBootstrap
-    // The module cache
+  (function(modules) {
 
-    var installedModules = {};
+      var installedModules = {};
 
-    // The require function
+      function __webpack_require__(moduleId) {
 
-    function __webpack_require__(moduleId) {
-
-
-
-        if (installedModules[moduleId]) {
-
-            return installedModules[moduleId].exports;
-
-        }
+          if (installedModules[moduleId]) {
+              return installedModules[moduleId].exports;
+          }
+          var module = installedModules[moduleId] = {
+              exports: {}
+          };
+          modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 
 
-        var module = installedModules[moduleId] = {
+          return module.exports;
+      }
 
-            i: moduleId,
+      return __webpack_require__("./src/index.js");
+  })
+  ({
 
-            l: false,
+      "./src/async1.js":
 
-            exports: {}
+          (function(module, __webpack_exports__, __webpack_require__) {
+          const async = `hello nihao`;
+          __webpack_exports__["default"] = (async)
 
-        };
+      }),
 
+      "./src/index.js":
 
+          (function(module, __webpack_exports__, __webpack_require__) {
+          var _async1__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("./src/async1.js");
+          //import 就相当于 var async1 = __webpack_require__("./src/async1.js");
+          console.log(_async1__WEBPACK_IMPORTED_MODULE_0__["default"])
 
-        modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+      })
 
-
-        module.l = true;
-
-
-        return module.exports;
-
-    }
-
-
-
-    return __webpack_require__(__webpack_require__.s = "./src/index.js");
-
-})
-({
-
-        "./src/async1.js":
-
-            (function(module, __webpack_exports__, __webpack_require__) {
-
-            "use strict";
-            __webpack_require__.r(__webpack_exports__);
-            const async1 = 'webpack源码分析async1';
-            /* harmony default export */
-            __webpack_exports__["default"] = (async1);
-            console.log(1111);
-
-        }),
-
-        "./src/index.js": (function(module, __webpack_exports__, __webpack_require__) {
-
-                "use strict";
-                __webpack_require__.r(__webpack_exports__);
-
-                var _async1__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__("./src/async1.js");
-                console.log(_async1__WEBPACK_IMPORTED_MODULE_0__["default"]);
-                console.log(\"我是入口文件\");
-                    console.log(1111)
-
-                })
-
-
-        });
+  });
 ```
 
 ##手写一个模块打包器
@@ -293,3 +259,172 @@ export default async1;
 4.将ast树转换为可执行js的代码
 
 5编写__webpack_require__函数，根据入口文件自动执行完所有的依赖。
+
+
+根据上述步骤开始写代码😊
+
+代码层分为四层
+
+
+一层读取入口文件，将内容转化为ast（抽象语法树）树，遍历语法树并将import xxx from './xxx.js' 转化为var xxx = __webpack_require__("xxx"); 将export default xxx 转化为 __webpack_exports__["default"] = xxx 
+
+
+```
+function parse(filename) {
+    const contant = fs.readFileSync(filename, 'utf-8');
+    //将字符串转换为ast抽象语法树
+    const ast = parser.parse(contant, {
+            sourceType: 'module'
+        })
+        // console.log(ast)
+    const code = new MagicString(contant);
+    //遍历抽象语法树
+    traverse(ast, {
+        ExportDeclaration({
+            node
+        }) {
+            const {
+                start,
+                end,
+                declaration,
+            } = node;
+            code.overwrite(start, end,
+                `__webpack_exports__["default"]=${declaration.name}`
+            )
+        },
+        ImportDeclaration({
+            node
+        }) {
+            // console.log('🌟🌟', node)
+            const {
+                start,
+                end,
+                specifiers,
+                source
+            } = node;
+            const newFile = "./src/" + path.join(source.value) + '.js';
+            code.overwrite(start, end,
+                `var ${specifiers[0].local.name}=__webpack_require__("${newFile}").default`
+            )
+        }
+    })
+    const _code = code.toString()
+}
+
+```
+
+二层 深度遍历语法树，找到所有依赖并放入数组中，生成所有资源对象数组。
+
+
+```
+    //  全局的依赖项
+const dependencies = [];
+
+function parse(filename) {
+    const contant = fs.readFileSync(filename, 'utf-8');
+    //获取当前的依赖
+    const garphArray = [];
+    //将字符串转换为ast抽象语法树
+    const ast = parser.parse(contant, {
+            sourceType: 'module'
+        })
+        // console.log(ast)
+    const code = new MagicString(contant);
+    //遍历抽象语法树
+    traverse(ast, {
+        ExportDeclaration({
+            node
+        }) {
+            const {
+                start,
+                end,
+                declaration,
+            } = node;
+            code.overwrite(start, end,
+                `__webpack_exports__["default"]=${declaration.name}`
+            )
+        },
+        ImportDeclaration({
+            node
+        }) {
+            // console.log('🌟🌟', node)
+            const {
+                start,
+                end,
+                specifiers,
+                source
+            } = node;
+            const newFile = "./src/" + path.join(source.value) + '.js';
+            code.overwrite(start, end,
+                `var ${specifiers[0].local.name}=__webpack_require__("${newFile}").default`
+            )
+            garphArray.push(newFile);
+        }
+    })
+    const _code = code.toString()
+    dependencies.push({
+        filename,
+        _code
+    });
+    return garphArray;
+}
+let garphArray = parse(entryPonint);
+//对其进行递归
+for (let item of garphArray) {
+    parse(item)
+}
+console.log(dependencies)
+
+```
+
+三层 封装自执行函数，创建 __webpack_require__ 方法，处理文件相互依赖，该处引入ejs对模版处理
+
+```
+const template = `
+  (function (modules) {
+
+      var installedModules = {};
+
+      function __webpack_require__(moduleId) {
+          if (installedModules[moduleId]) {
+              return installedModules[moduleId].exports;
+          }
+          var module = installedModules[moduleId] = {
+              exports: {}
+          };
+          modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+
+          return module.exports;
+      }
+      return __webpack_require__("${entryPonint}");
+  })
+  ({
+
+    <% for(var i = 0; i < dependencies.length; i++){ %>
+        "<%-dependencies[i]["filename"]%>":
+        (function (module, __webpack_exports__, __webpack_require__) {
+               <%-dependencies[i]["_code"]%>
+            }),
+    <% } %>
+  });
+`;
+
+let result = ejs.render(template, {
+    dependencies
+})
+```
+
+四层 将其result 模版 写出
+
+```
+fs.writeFileSync("./dist/main.js", result)
+```
+
+###相关链接
+
+[git仓库](https://github.com/wendaoshuai66/diy-webpack)
+
+
+
+
+
