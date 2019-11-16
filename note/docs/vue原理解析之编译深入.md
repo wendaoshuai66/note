@@ -281,3 +281,28 @@ export const createCompiler = createCompilerCreator(function baseCompile (
 optimize(ast, options). =====>优化语法树
 
 const code = generate(ast, options) =====》生成代码 
+
+
+##parse
+
+parse是对模版解析，生成ast，它是抽象语法树（是对源代码的抽象语法结构的树状的表现形式）
+
+通过上述还是有点模糊😢，来个例子直观一些😄：
+
+```
+<ul :class="bindCls" class="list" v-if="isShow">
+    <li v-for="(item,index) in data" @click="clickItem(index)">{{item}}:{{index}}</li>
+</ul>
+```
+
+经过 parse 过程后，生成的 AST 如下：
+
+![](https://wendaoshuai66.github.io/study/note/images/vue-ast.png)
+
+
+
+
+
+
+
+
