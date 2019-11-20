@@ -508,3 +508,47 @@ setTimeout(function() {
 ```
 
 ####原生js
+
+
+```
+#box {
+        width: 300px;
+        height: 300px;
+        background: yellowgreen;
+        position: absolute
+    }
+<div id="box">
+</div>
+
+<script>
+
+</script>
+let drag = document.getElementById('box');
+        drag.onmousedown = function(e) {
+            let event = e || window.event;
+            let outX = event.clientX - drag.offsetLeft;
+            let outY = event.clientY - drag.offsetTop;
+            drag.onmousemove = function(e) {
+                let event = e || window.event;
+                let left = event.clientX - outX,
+                    top = event.clientY - outY;
+                if (left < 0) {
+                    left = 0;
+                } else if (left > (window.innerWidth - drag.offsetWidth)) {
+
+                    left = window.innerWidth - drag.offsetWidth
+                }
+                if (top < 0) {
+                    top = 0;
+                } else if (top > (window.innerHeight - drag.offsetHeight)) {
+                    top = window.innerHeight - drag.offsetHeight;
+                }
+                drag.style.left = CSS.px(left);
+                drag.style.top = CSS.px(top);
+            }
+            drag.onmouseup = function() {
+                drag.onmousemove = null;
+                drag.onmouseup = null;
+            }
+        }
+```
