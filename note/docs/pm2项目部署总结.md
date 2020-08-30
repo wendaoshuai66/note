@@ -210,6 +210,80 @@ pm2 reload node-app 或者 pm2 reload pm2.json
 
 ```
 
+##探索原理
+
+pm2 的git 仓库 [https://github.com/Unitech/pm2](https://github.com/Unitech/pm2)
+
+Nodejs的设计架构与nginx类似，是多线程单线程模型
+
+由于Node单线程的限制，-----》在[多核](https://baike.baidu.com/item/%E5%A4%9A%E6%A0%B8/1838576?fr=aladdin)服务器,需要启动多个进程才能最大化的利用服务器的性能。
+
+Node V0.8以后引入了cluster模块，它通过一个主进程（Master）管理多个子进程（Worker）的方式实现集群功能。
+
+
+先来两段代码看看😄	
+
+app.js
+
+```
+var http = require('http');
+
+http.createServer(function(req, res) {
+    res.writeHead(200);
+    res.end('nihaoa');
+}).listen(8000)
+```
+
+work.js
+
+```
+let cluster = require('cluster');
+
+let numCPUs = require('os').cpus().length;//获取cpu的个数
+
+if (cluster.isMaster) {
+    console.log(numCPUs)
+    for (let i = 0; i < numCPUs; i++) {
+        var worker = cluster.fork();
+    }
+} else {
+    require('./app.js')
+}
+```
+
+对上述代码进行一下阐述，通过isMaster属性，判断是否是master进程
+
+是 fork 子进程
+
+否则启动一个新的服务server
+
+每个http server都能监听到同一个端口
+
+启动node work.js,来来通过 ps aux | grep node 查看的进程
+
+
+![https://wendaoshuai66.github.io/study/note/images/pm2-cluster.png](https://wendaoshuai66.github.io/study/note/images/pm2-cluster.png)
+
+###了解pm2必须了解cluster
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ##参考
 
 [官方文档](https://pm2.keymetrics.io/docs/advanced/pm2-module-system/)
